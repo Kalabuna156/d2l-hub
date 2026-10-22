@@ -1,0 +1,311 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+/* Backdrop presets. Each one sets the page colour, the sticky chrome and three
+   ambient glows, so a theme is a handful of variables rather than new JSX. */
+:root,
+[data-backdrop="aurora"] {
+  --bg-base: #07080d;
+  --chrome: rgb(7 8 13 / 0.55);
+  --chrome-solid: #0a0c13;
+  --glow-1: rgb(109 40 217 / 0.16);
+  --glow-2: rgb(14 165 233 / 0.09);
+  --glow-3: rgb(217 70 239 / 0.06);
+}
+
+[data-backdrop="noir"] {
+  --bg-base: #050608;
+  --chrome: rgb(5 6 8 / 0.62);
+  --chrome-solid: #08090c;
+  --glow-1: rgb(148 163 184 / 0.05);
+  --glow-2: rgb(148 163 184 / 0.035);
+  --glow-3: rgb(148 163 184 / 0.025);
+}
+
+[data-backdrop="sunset"] {
+  --bg-base: #120b0d;
+  --chrome: rgb(18 11 13 / 0.56);
+  --chrome-solid: #170e11;
+  --glow-1: rgb(190 24 93 / 0.16);
+  --glow-2: rgb(180 83 9 / 0.13);
+  --glow-3: rgb(244 63 94 / 0.07);
+}
+
+[data-backdrop="ocean"] {
+  --bg-base: #06090f;
+  --chrome: rgb(6 9 15 / 0.56);
+  --chrome-solid: #080d15;
+  --glow-1: rgb(15 118 110 / 0.16);
+  --glow-2: rgb(29 78 216 / 0.14);
+  --glow-3: rgb(6 182 212 / 0.07);
+}
+
+[data-backdrop="meadow"] {
+  --bg-base: #070b07;
+  --chrome: rgb(7 11 7 / 0.57);
+  --chrome-solid: #0a0f0a;
+  --glow-1: rgb(21 128 61 / 0.18);
+  --glow-2: rgb(101 163 13 / 0.12);
+  --glow-3: rgb(16 185 129 / 0.06);
+}
+
+/* Accent presets remap the violet ramp the whole UI uses for highlights, so one
+   attribute re-tints every accent surface without touching each component. */
+[data-accent="sky"] {
+  --color-violet-100: oklch(95.1% 0.026 236.824);
+  --color-violet-200: oklch(90.1% 0.058 230.902);
+  --color-violet-300: oklch(82.8% 0.111 230.318);
+  --color-violet-400: oklch(74.6% 0.16 232.661);
+  --color-violet-500: oklch(68.5% 0.169 237.323);
+  --color-violet-600: oklch(58.8% 0.158 241.966);
+  --color-violet-950: oklch(29.3% 0.066 243.157);
+}
+
+[data-accent="emerald"] {
+  --color-violet-100: oklch(95% 0.052 163.051);
+  --color-violet-200: oklch(90.5% 0.093 164.15);
+  --color-violet-300: oklch(84.5% 0.143 164.978);
+  --color-violet-400: oklch(76.5% 0.177 163.223);
+  --color-violet-500: oklch(69.6% 0.17 162.48);
+  --color-violet-600: oklch(59.6% 0.145 163.225);
+  --color-violet-950: oklch(26.2% 0.051 172.552);
+}
+
+[data-accent="amber"] {
+  --color-violet-100: oklch(96.2% 0.059 95.617);
+  --color-violet-200: oklch(92.4% 0.12 95.746);
+  --color-violet-300: oklch(87.9% 0.169 91.605);
+  --color-violet-400: oklch(82.8% 0.189 84.429);
+  --color-violet-500: oklch(76.9% 0.188 70.08);
+  --color-violet-600: oklch(66.6% 0.179 58.318);
+  --color-violet-950: oklch(27.9% 0.077 45.635);
+}
+
+[data-accent="rose"] {
+  --color-violet-100: oklch(94.1% 0.03 12.58);
+  --color-violet-200: oklch(89.2% 0.058 10.001);
+  --color-violet-300: oklch(81% 0.117 11.638);
+  --color-violet-400: oklch(71.2% 0.194 13.428);
+  --color-violet-500: oklch(64.5% 0.246 16.439);
+  --color-violet-600: oklch(58.6% 0.253 17.585);
+  --color-violet-950: oklch(27.1% 0.105 12.094);
+}
+
+[data-accent="fuchsia"] {
+  --color-violet-100: oklch(95.2% 0.037 318.852);
+  --color-violet-200: oklch(90.3% 0.076 319.62);
+  --color-violet-300: oklch(83.3% 0.145 321.434);
+  --color-violet-400: oklch(74% 0.238 322.16);
+  --color-violet-500: oklch(66.7% 0.295 322.15);
+  --color-violet-600: oklch(59.1% 0.293 322.896);
+  --color-violet-950: oklch(29.3% 0.136 325.661);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  /* The theme paints the window itself, not just the content column, so no
+     strip of default dark shows at the edges or while the page is overscrolled. */
+  html {
+    background-color: var(--bg-base);
+  }
+
+  body {
+    margin: 0;
+    /* Transparent on purpose: the fixed Backdrop paints the theme and any
+       wallpaper above <html>'s colour, so the sidebar and dialogs sit on it
+       too instead of only the content column. */
+    background-color: transparent;
+    color: #e6eaf3;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgba(109, 94, 252, 0.35);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  .panel {
+    background: rgba(255, 255, 255, 0.028);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 1rem;
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
+  }
+
+  .focus-ring {
+    outline: none;
+  }
+
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 2px #07080d, 0 0 0 4px rgba(139, 125, 255, 0.7);
+  }
+
+  /* Announcement bodies arrive as sanitised HTML from D2L. */
+  .announcement-body {
+    color: rgb(148 163 184);
+    font-size: 12.5px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .announcement-body > * + * {
+    margin-top: 0.6rem;
+  }
+
+  .announcement-body p,
+  .announcement-body ul,
+  .announcement-body ol {
+    margin: 0;
+  }
+
+  .announcement-body ul,
+  .announcement-body ol {
+    padding-left: 1.1rem;
+    list-style: disc;
+  }
+
+  .announcement-body ol {
+    list-style: decimal;
+  }
+
+  .announcement-body li + li {
+    margin-top: 0.3rem;
+  }
+
+  .announcement-body strong,
+  .announcement-body b {
+    color: rgb(226 232 240);
+    font-weight: 600;
+  }
+
+  .announcement-body a {
+    color: rgb(196 181 253);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .announcement-body a:hover {
+    color: rgb(221 214 254);
+  }
+
+  .announcement-body h1,
+  .announcement-body h2,
+  .announcement-body h3,
+  .announcement-body h4 {
+    color: rgb(241 245 249);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .announcement-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+  }
+
+  .announcement-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .announcement-body th,
+  .announcement-body td {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.3rem 0.45rem;
+    text-align: left;
+  }
+
+  .announcement-body blockquote {
+    border-left: 2px solid rgba(139, 125, 255, 0.5);
+    padding-left: 0.75rem;
+    color: rgb(148 163 184);
+  }
+
+  .hide-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .backdrop-image {
+    opacity: var(--backdrop-image-opacity, 0.55);
+    filter: saturate(0.9);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 1.8s ease-in-out infinite;
+}
