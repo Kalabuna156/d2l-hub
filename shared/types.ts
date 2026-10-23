@@ -374,6 +374,66 @@ export interface LibraryDetail {
   totalSize: number;
 }
 
+/** Freehand ink a student adds over a PDF page. */
+export type PdfInkTool = 'pen' | 'highlighter';
+
+export interface PdfInkPoint {
+  /** PDF points from the top-left of the unrotated page */
+  x: number;
+  y: number;
+  /** Stylus pressure from 0 to 1; 0.5 for a mouse */
+  pressure: number;
+}
+
+export interface PdfInkStroke {
+  id: string;
+  /** 1-based page number */
+  page: number;
+  tool: PdfInkTool;
+  /** #rrggbb */
+  color: string;
+  /** Stroke width in PDF points */
+  width: number;
+  opacity: number;
+  points: PdfInkPoint[];
+}
+
+/** Everything drawn over one Content Space PDF. */
+export interface PdfInkAnnotations {
+  version: 1;
+  strokes: PdfInkStroke[];
+}
+
+/** One page read by OCR; the PDF itself is not rewritten. */
+export interface PdfOcrResult {
+  page: number;
+  text: string;
+  words: number;
+  /** Set when PdfCraft skipped the page, e.g. it already has selectable text. */
+  skipped: string | null;
+}
+
+/** OCR text kept between sessions, keyed by 1-based page number. */
+export interface PdfOcrText {
+  pages: Record<string, string>;
+}
+
+/** One AI reply about the PDF page the viewer currently shows. */
+export interface AiPageReply {
+  reply: string;
+}
+
+/** Handwriting read by the AI from the current page screenshot. */
+export interface PdfHandwritingResult {
+  page: number;
+  /** Only the handwriting, with printed page text left out. */
+  text: string;
+  words: number;
+  found: boolean;
+  /** What was saved for search (existing OCR text plus the handwriting). */
+  savedText: string;
+}
+
 export interface DriveEntry {
   id: string;
   name: string;

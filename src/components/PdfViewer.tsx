@@ -1,28 +1,75 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertCircle,
+  Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Contrast,
+  Copy,
   Download,
+  Eraser,
+  Highlighter,
   Loader2,
   Maximize2,
   Minimize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PenLine,
+  Redo2,
   RotateCw,
+  ScanText,
+  Search,
+  Sparkles,
+  Trash2,
+  Undo2,
   X,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
-import type { LibraryFile } from '../../shared/types';
-import type { PDFDocumentProxy } from 'pdfjs-dist';
+import type { AiStatus, PdfInkStroke, PdfOcrResult, LibraryFile } from '../../shared/types';
+import type { PageViewport, PDFDocumentProxy } from 'pdfjs-dist';
+import {
+  askAiAboutPage,
+  fetchAiStatus,
+  fetchPdfInk,
+  fetchPdfOcr,
+  recognizePdfPage,
+  savePdfInk,
+  transcribePdfHandwriting,
+} from '../lib/api';
+import { PdfAiPanel, type PdfAiMessage } from './PdfAiPanel';
+import { PdfInkLayer, type PdfTool } from './PdfInkLayer';
+import { PdfThumbnail } from './PdfThumbnail';
 import '../lib/pdf-polyfills';
 
 interface PdfViewerProps {
   file: LibraryFile | null;
+  ai: AiStatus | null;
+  onOpenSettings: () => void;
   onClose: () => void;
+}
+
+interface InkState {
+  strokes: PdfInkStroke[];
+  undo: PdfInkStroke[][];
+  redo: PdfInkStroke[][];
+}
+
+interface SearchHit {
+  page: number;
+  count: number;
 }
 
 const INVERT_KEY = 'd2l-hub.pdf-invert';
 const ZOOM_STEPS = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+const MAX_UNDO = 40;
+const INK_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#0f172a'];
+
+function emptyInk(): InkState {
+  return { strokes: [], undo: [], redo: [] };
+}
 
 function readInvert(): boolean {
   try {
@@ -32,7 +79,20 @@ function readInvert(): boolean {
   }
 }
 
-export function PdfViewer({ file, onClose }: PdfViewerProps) {
+function countMatches(text: string, query: string): number {
+  if (!query) return 0;
+  let count = 0;
+  let from = 0;
+  while (from < text.length) {
+    const found = text.indexOf(query, from);
+    if (found === -1) break;
+    count += 1;
+    from = found + query.length;
+  }
+  return count;
+}
+
+export function PdfViewer({ file, ai, onOpenSettings, onClose }: PdfViewerProps) {
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState('1');
@@ -43,14 +103,68 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [viewport, setViewport] = useState<PageViewport | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const [tool, setTool] = useState<PdfTool>('read');
+  const [ink, setInk] = useState<InkState>(emptyInk);
+  const [inkReady, setInkReady] = useState(false);
+  const [inkLoading, setInkLoading] = useState(false);
+  const [inkError, setInkError] = useState<string | null>(null);
+  const [inkReload, setInkReload] = useState(0);
+  const [brushColor, setBrushColor] = useState(INK_COLORS[0]);
+  const [brushSize, setBrushSize] = useState(3);
+  const [dirty, setDirty] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
+  const [searchIndex, setSearchIndex] = useState(0);
+  const [searchNote, setSearchNote] = useState<string | null>(null);
+
+  const [ocrOpen, setOcrOpen] = useState(false);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrResult, setOcrResult] = useState<PdfOcrResult | null>(null);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [ocrPages, setOcrPages] = useState<number[]>([]);
+  const [ocrRevision, setOcrRevision] = useState(0);
+  const [copied, setCopied] = useState(false);
+
+  const [handwritingBusy, setHandwritingBusy] = useState(false);
+  const [handwritingText, setHandwritingText] = useState<string | null>(null);
+  const [handwritingFound, setHandwritingFound] = useState(false);
+  const [handwritingError, setHandwritingError] = useState<string | null>(null);
+
+  const [aiStatus, setAiStatus] = useState<AiStatus | null>(ai);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiMessages, setAiMessages] = useState<PdfAiMessage[]>([]);
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const loadRef = useRef(0);
   const renderTaskRef = useRef<{ cancel: () => void } | null>(null);
+  const renderIdRef = useRef(0);
+  const inkLoadRef = useRef(0);
+  const revisionRef = useRef(0);
+  const dirtyRef = useRef(false);
+  const latestStrokesRef = useRef<PdfInkStroke[]>([]);
+  const saveChainRef = useRef<Promise<unknown>>(Promise.resolve());
+  const textCacheRef = useRef<Map<number, string>>(new Map());
+  const searchTokenRef = useRef(0);
+  const ocrLoadRef = useRef(0);
+  const ocrTokenRef = useRef(0);
+  const handwritingTokenRef = useRef(0);
 
-  const url = file ? `/api/library/file/${file.id}` : null;
+  const fileId = file?.id ?? null;
+  const url = fileId ? `/api/library/file/${fileId}` : null;
 
   useEffect(() => {
     setDoc(null);
@@ -58,9 +172,32 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
     setPageInput('1');
     setZoom(1);
     setRotation(0);
+    setViewport(null);
     setLoading(Boolean(file));
     setError(null);
-    if (!file || !url) return;
+    setTool('read');
+    setSearchOpen(false);
+    setQuery('');
+    setSearchHits([]);
+    setSearchNote(null);
+    setOcrOpen(false);
+    setOcrLoading(false);
+    setOcrResult(null);
+    setOcrError(null);
+    setOcrPages([]);
+    setCopied(false);
+    setHandwritingBusy(false);
+    setHandwritingText(null);
+    setHandwritingFound(false);
+    setHandwritingError(null);
+    handwritingTokenRef.current += 1;
+    setAiOpen(false);
+    setAiMessages([]);
+    setAiQuestion('');
+    setAiBusy(false);
+    setAiError(null);
+    textCacheRef.current.clear();
+    if (!fileId || !url) return;
 
     const loadId = loadRef.current + 1;
     loadRef.current = loadId;
@@ -88,7 +225,7 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
         );
       }
     })();
-  }, [file, url]);
+  }, [file, fileId, url]);
 
   useEffect(() => {
     return () => {
@@ -96,33 +233,206 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
     };
   }, [doc]);
 
+  // Load the ink layer beside the PDF. Drawing stays paused if it cannot load,
+  // so a save can never overwrite notes the viewer has not seen.
   useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
-      if (!file) return;
-      if (event.key === 'Escape') {
-        if (document.fullscreenElement) void document.exitFullscreen();
-        else onClose();
-      } else if (event.key === 'ArrowRight' || event.key === 'PageDown') {
-        setPage((current) => Math.min(current + 1, doc?.numPages ?? current));
-      } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
-        setPage((current) => Math.max(current - 1, 1));
-      } else if (event.key === '+' || event.key === '=') {
-        setZoom((current) => Math.min(3, +(current + 0.15).toFixed(2)));
-      } else if (event.key === '-') {
-        setZoom((current) => Math.max(0.5, +(current - 0.15).toFixed(2)));
+    if (!fileId) {
+      setInk(emptyInk());
+      setInkReady(false);
+      setInkLoading(false);
+      setInkError(null);
+      return;
+    }
+    let alive = true;
+    const loadId = inkLoadRef.current + 1;
+    inkLoadRef.current = loadId;
+    setInk(emptyInk());
+    latestStrokesRef.current = [];
+    setInkReady(false);
+    setInkLoading(true);
+    setInkError(null);
+    setDirty(false);
+    dirtyRef.current = false;
+    revisionRef.current = 0;
+    setSaveState('idle');
+    setSaveError(null);
+
+    void (async () => {
+      try {
+        const annotations = await fetchPdfInk(fileId);
+        if (!alive || inkLoadRef.current !== loadId) return;
+        latestStrokesRef.current = annotations.strokes;
+        setInk({ strokes: annotations.strokes, undo: [], redo: [] });
+        setInkReady(true);
+        setInkLoading(false);
+      } catch (err) {
+        if (!alive || inkLoadRef.current !== loadId) return;
+        setInkLoading(false);
+        setInkError(err instanceof Error ? err.message : 'Could not load your notes for this PDF.');
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [fileId, inkReload]);
+
+  useEffect(() => {
+    latestStrokesRef.current = ink.strokes;
+  }, [ink.strokes]);
+
+  useEffect(() => {
+    setAiStatus(ai);
+  }, [ai]);
+
+  // Recognised text from earlier sessions joins the search cache right away.
+  useEffect(() => {
+    if (!fileId) return;
+    let alive = true;
+    const loadId = ocrLoadRef.current + 1;
+    ocrLoadRef.current = loadId;
+    void fetchPdfOcr(fileId)
+      .then((payload) => {
+        if (!alive || ocrLoadRef.current !== loadId) return;
+        const numbers: number[] = [];
+        for (const [key, value] of Object.entries(payload.pages ?? {})) {
+          const number = Number(key);
+          if (!Number.isInteger(number) || number < 1 || !value) continue;
+          textCacheRef.current.set(number, value.toLowerCase());
+          numbers.push(number);
+        }
+        numbers.sort((a, b) => a - b);
+        setOcrPages(numbers);
+        if (numbers.length) setOcrRevision((current) => current + 1);
+      })
+      .catch(() => {
+        /* OCR is optional; the PDF still opens without it */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [fileId]);
+
+  // Writes stay in order: an older autosave must never land after a newer one.
+  const queueSave = useCallback((id: string, strokes: PdfInkStroke[]) => {
+    const job = saveChainRef.current.then(() => savePdfInk(id, { version: 1, strokes }));
+    saveChainRef.current = job.catch(() => undefined);
+    return job;
+  }, []);
+
+  // Save the latest layer when the viewer closes, even if the debounce has not fired.
+  useEffect(() => {
+    const id = fileId;
+    return () => {
+      if (id && dirtyRef.current) {
+        void queueSave(id, latestStrokesRef.current);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [file, doc, onClose]);
+  }, [fileId, queueSave]);
+
+  const persist = useCallback(
+    async (strokes: PdfInkStroke[]) => {
+      if (!fileId) return;
+      const revision = revisionRef.current;
+      setSaveState('saving');
+      setSaveError(null);
+      try {
+        await queueSave(fileId, strokes);
+        if (revisionRef.current === revision) {
+          dirtyRef.current = false;
+          setDirty(false);
+          setSaveState('saved');
+        }
+      } catch (err) {
+        setSaveState('error');
+        setSaveError(err instanceof Error ? err.message : 'Could not save your notes.');
+      }
+    },
+    [fileId, queueSave],
+  );
 
   useEffect(() => {
-    setPage((current) => (doc ? Math.min(current, doc.numPages) : current));
-  }, [doc]);
+    if (!inkReady || !dirty || !fileId) return;
+    const strokes = ink.strokes;
+    const timer = window.setTimeout(() => void persist(strokes), 700);
+    return () => window.clearTimeout(timer);
+  }, [dirty, fileId, ink.strokes, inkReady, persist]);
 
-  useEffect(() => {
-    setPageInput(String(page));
-  }, [page]);
+  const markDirty = useCallback(() => {
+    revisionRef.current += 1;
+    dirtyRef.current = true;
+    setDirty(true);
+    setSaveState('idle');
+    setSaveError(null);
+  }, []);
+
+  const commit = useCallback(
+    (update: (current: PdfInkStroke[]) => PdfInkStroke[]) => {
+      setInk((current) => {
+        const next = update(current.strokes);
+        if (next === current.strokes) return current;
+        return {
+          strokes: next,
+          undo: [...current.undo.slice(-(MAX_UNDO - 1)), current.strokes],
+          redo: [],
+        };
+      });
+      markDirty();
+    },
+    [markDirty],
+  );
+
+  const addStroke = useCallback(
+    (stroke: PdfInkStroke) => {
+      commit((current) => [...current, stroke]);
+    },
+    [commit],
+  );
+
+  const eraseStrokes = useCallback(
+    (ids: string[]) => {
+      if (!ids.length) return;
+      const remove = new Set(ids);
+      commit((current) => {
+        const next = current.filter((stroke) => !remove.has(stroke.id));
+        return next.length === current.length ? current : next;
+      });
+    },
+    [commit],
+  );
+
+  const undo = useCallback(() => {
+    setInk((current) => {
+      if (!current.undo.length) return current;
+      const previous = current.undo[current.undo.length - 1];
+      return {
+        strokes: previous,
+        undo: current.undo.slice(0, -1),
+        redo: [current.strokes, ...current.redo].slice(0, MAX_UNDO),
+      };
+    });
+    markDirty();
+  }, [markDirty]);
+
+  const redo = useCallback(() => {
+    setInk((current) => {
+      if (!current.redo.length) return current;
+      const [next, ...rest] = current.redo;
+      return {
+        strokes: next,
+        undo: [...current.undo.slice(-(MAX_UNDO - 1)), current.strokes],
+        redo: rest,
+      };
+    });
+    markDirty();
+  }, [markDirty]);
+
+  const clearPage = useCallback(() => {
+    commit((current) => {
+      const next = current.filter((stroke) => stroke.page !== page);
+      return next.length === current.length ? current : next;
+    });
+  }, [commit, page]);
 
   const toggleInvert = useCallback(() => {
     setInvert((current) => {
@@ -136,40 +446,272 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
     });
   }, []);
 
+  const closeOcr = useCallback(() => {
+    ocrTokenRef.current += 1;
+    handwritingTokenRef.current += 1;
+    setOcrOpen(false);
+    setOcrLoading(false);
+    setHandwritingBusy(false);
+    setHandwritingText(null);
+    setHandwritingFound(false);
+    setHandwritingError(null);
+  }, []);
+
+  const runOcr = useCallback(
+    async (target: number) => {
+      if (!fileId || ocrLoading) return;
+      const token = ocrTokenRef.current + 1;
+      ocrTokenRef.current = token;
+      setOcrOpen(true);
+      setOcrLoading(true);
+      setOcrResult(null);
+      setOcrError(null);
+      setCopied(false);
+      handwritingTokenRef.current += 1;
+      setHandwritingBusy(false);
+      setHandwritingText(null);
+      setHandwritingFound(false);
+      setHandwritingError(null);
+      try {
+        const result = await recognizePdfPage(fileId, target);
+        if (ocrTokenRef.current !== token) return;
+        setOcrResult(result);
+        if (result.text) {
+          textCacheRef.current.set(target, result.text.toLowerCase());
+          setOcrPages((current) =>
+            current.includes(target) ? current : [...current, target].sort((a, b) => a - b),
+          );
+          setOcrRevision((current) => current + 1);
+        }
+      } catch (err) {
+        if (ocrTokenRef.current === token) {
+          setOcrError(err instanceof Error ? err.message : 'Could not read this page.');
+        }
+      } finally {
+        if (ocrTokenRef.current === token) setOcrLoading(false);
+      }
+    },
+    [fileId, ocrLoading],
+  );
+
+  const copyOcrText = useCallback(async () => {
+    const text = ocrResult?.text;
+    if (!text) return;
+    // clipboard.writeText can wait on a permission prompt; do not leave the
+    // button stuck while it does.
+    let apiCopy: Promise<void> | null = null;
+    try {
+      apiCopy = navigator.clipboard?.writeText?.(text) ?? null;
+    } catch {
+      apiCopy = null;
+    }
+    const copiedWithApi = apiCopy
+      ? await Promise.race([
+          apiCopy.then(() => true).catch(() => false),
+          new Promise<boolean>((resolve) => window.setTimeout(() => resolve(false), 500)),
+        ])
+      : false;
+    if (!copiedWithApi) {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      try {
+        document.execCommand('copy');
+      } catch {
+        /* the text stays selectable in the panel */
+      }
+      area.remove();
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  }, [ocrResult]);
+
+  /** A JPEG of the page plus any ink, at a size vision models can read. */
+  const capturePageImage = useCallback((): string | null => {
+    const base = canvasRef.current;
+    if (!base || base.width < 2 || base.height < 2) return null;
+    const maxWidth = 1_400;
+    const scale = Math.min(1, maxWidth / base.width);
+    const width = Math.max(1, Math.round(base.width * scale));
+    const height = Math.max(1, Math.round(base.height * scale));
+    const offscreen = document.createElement('canvas');
+    offscreen.width = width;
+    offscreen.height = height;
+    const context = offscreen.getContext('2d');
+    if (!context) return null;
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, width, height);
+    context.drawImage(base, 0, 0, width, height);
+
+    // The ink layer is a separate canvas; draw it over the page so the model
+    // can read handwritten notes and annotations too.
+    const inkCanvas = shellRef.current?.querySelector<HTMLCanvasElement>('[data-pdf-ink]');
+    if (inkCanvas && inkCanvas.width > 0 && inkCanvas.height > 0) {
+      context.drawImage(inkCanvas, 0, 0, width, height);
+    }
+    try {
+      return offscreen.toDataURL('image/jpeg', 0.86);
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /** Selectable text for this page, with the OCR sidecar as a fallback. */
+  const pageTextForAi = useCallback(async (): Promise<string> => {
+    let text = '';
+    if (doc) {
+      try {
+        const target = await doc.getPage(page);
+        const content = await target.getTextContent();
+        text = content.items
+          .map((item) => ('str' in item ? item.str : ''))
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      } catch {
+        /* fall back to OCR text */
+      }
+    }
+    if (!text) text = textCacheRef.current.get(page) ?? '';
+    return text.slice(0, 24_000);
+  }, [doc, page]);
+
+  const toggleAi = useCallback(() => {
+    const next = !aiOpen;
+    setAiOpen(next);
+    if (next) {
+      setAiError(null);
+      void fetchAiStatus().then(setAiStatus).catch(() => undefined);
+    }
+  }, [aiOpen]);
+
+  const sendAiQuestion = useCallback(
+    async (prompt?: string) => {
+      const question = (prompt ?? aiQuestion).trim();
+      if (!question || aiBusy) return;
+      if (!aiStatus?.configured) {
+        setAiError('Add your own AI API key in Settings → AI first.');
+        return;
+      }
+      const image = capturePageImage();
+      const history = aiMessages.slice(-8).map((message) => ({
+        role: message.role,
+        text: message.text,
+      }));
+      setAiMessages((current) => [...current, { role: 'user', text: question }]);
+      setAiQuestion('');
+      setAiError(null);
+      setAiBusy(true);
+      try {
+        const pageText = await pageTextForAi();
+        if (!image && !pageText) {
+          throw new Error('This page is still rendering. Give it a second and try again.');
+        }
+        const result = await askAiAboutPage({
+          question,
+          page,
+          pageCount: doc?.numPages ?? null,
+          fileName: file?.fileName ?? 'this document',
+          pageText,
+          image,
+          history,
+        });
+        setAiMessages((current) => [...current, { role: 'assistant', text: result.reply }]);
+      } catch (err) {
+        setAiError(err instanceof Error ? err.message : 'The AI could not answer that question.');
+      } finally {
+        setAiBusy(false);
+      }
+    },
+    [aiBusy, aiMessages, aiQuestion, aiStatus?.configured, capturePageImage, doc, file, page, pageTextForAi],
+  );
+
+  const readHandwriting = useCallback(async () => {
+    if (!fileId || handwritingBusy) return;
+    const image = capturePageImage();
+    if (!image) {
+      setHandwritingError('The page is still rendering. Try again in a moment.');
+      return;
+    }
+    const token = handwritingTokenRef.current + 1;
+    handwritingTokenRef.current = token;
+    setHandwritingBusy(true);
+    setHandwritingError(null);
+    setHandwritingText(null);
+    setHandwritingFound(false);
+    try {
+      const pageText = await pageTextForAi();
+      const result = await transcribePdfHandwriting(fileId, { page, image, pageText });
+      if (handwritingTokenRef.current !== token) return;
+      setHandwritingText(result.text);
+      setHandwritingFound(result.found);
+      if (result.found) {
+        textCacheRef.current.set(page, result.savedText.toLowerCase());
+        setOcrPages((current) =>
+          current.includes(page) ? current : [...current, page].sort((a, b) => a - b),
+        );
+        setOcrRevision((current) => current + 1);
+      }
+    } catch (err) {
+      if (handwritingTokenRef.current === token) {
+        setHandwritingError(
+          err instanceof Error ? err.message : 'Could not read the handwriting on this page.',
+        );
+      }
+    } finally {
+      if (handwritingTokenRef.current === token) setHandwritingBusy(false);
+    }
+  }, [capturePageImage, fileId, handwritingBusy, page, pageTextForAi]);
+
   const renderPage = useCallback(async () => {
     if (!doc || !canvasRef.current) return;
+    const renderId = renderIdRef.current + 1;
+    renderIdRef.current = renderId;
     const targetPage = Math.min(Math.max(page, 1), doc.numPages);
-    const rendered = await doc.getPage(targetPage);
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    // Navigating quickly would otherwise start a second render on the same canvas.
     renderTaskRef.current?.cancel();
     renderTaskRef.current = null;
+
+    let rendered: Awaited<ReturnType<PDFDocumentProxy['getPage']>>;
+    try {
+      rendered = await doc.getPage(targetPage);
+    } catch {
+      if (renderIdRef.current === renderId) setError('That page could not be loaded.');
+      return;
+    }
+    if (renderIdRef.current !== renderId) return;
 
     const base = rendered.getViewport({ scale: 1, rotation });
     const available = scrollRef.current?.clientWidth ?? 0;
     const fitScale = available > 48 ? (available - 48) / base.width : 1;
     const scale = Math.max(0.2, (fitWidth ? fitScale : 1) * zoom);
-    const viewport = rendered.getViewport({ scale, rotation });
+    const nextViewport = rendered.getViewport({ scale, rotation });
     const ratio = Math.min(window.devicePixelRatio || 1, 2);
 
-    canvas.width = Math.floor(viewport.width * ratio);
-    canvas.height = Math.floor(viewport.height * ratio);
-    canvas.style.width = `${Math.floor(viewport.width)}px`;
-    canvas.style.height = `${Math.floor(viewport.height)}px`;
+    setViewport(nextViewport);
+    canvas.width = Math.floor(nextViewport.width * ratio);
+    canvas.height = Math.floor(nextViewport.height * ratio);
+    canvas.style.width = `${Math.floor(nextViewport.width)}px`;
+    canvas.style.height = `${Math.floor(nextViewport.height)}px`;
 
     const task = rendered.render({
       canvas,
       canvasContext: context,
-      viewport,
+      viewport: nextViewport,
       transform: ratio === 1 ? undefined : [ratio, 0, 0, ratio, 0, 0],
     });
     renderTaskRef.current = task;
 
     try {
       await task.promise;
+      if (renderIdRef.current === renderId) setError(null);
     } catch (err) {
       if (!(err instanceof Error && /cancelled/i.test(err.message))) {
         setError('That page could not be drawn.');
@@ -191,7 +733,6 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
     };
   }, [doc, renderPage]);
 
-  // Keep a fit-width page fitted when the window or fullscreen state changes.
   useEffect(() => {
     if (!doc || !fitWidth) return;
     const element = scrollRef.current;
@@ -204,6 +745,32 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
   }, [doc, fitWidth, renderPage]);
 
   useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [page]);
+
+  useEffect(() => {
+    ocrTokenRef.current += 1;
+    handwritingTokenRef.current += 1;
+    setOcrOpen(false);
+    setOcrLoading(false);
+    setOcrResult(null);
+    setOcrError(null);
+    setCopied(false);
+    setHandwritingBusy(false);
+    setHandwritingText(null);
+    setHandwritingFound(false);
+    setHandwritingError(null);
+  }, [page, fileId]);
+
+  useEffect(() => {
+    setPage((current) => (doc ? Math.min(current, doc.numPages) : current));
+  }, [doc]);
+
+  useEffect(() => {
+    setPageInput(String(page));
+  }, [page]);
+
+  useEffect(() => {
     const handler = () => setFullscreen(Boolean(document.fullscreenElement));
     document.addEventListener('fullscreenchange', handler);
     return () => document.removeEventListener('fullscreenchange', handler);
@@ -213,15 +780,19 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
     setFitWidth(false);
     setZoom((current) => {
       const index = ZOOM_STEPS.findIndex((step) => step >= current - 0.001);
-      const next = direction === 1 ? Math.min(index + 1, ZOOM_STEPS.length - 1) : Math.max(index - 1, 0);
+      const next =
+        direction === 1 ? Math.min(index + 1, ZOOM_STEPS.length - 1) : Math.max(index - 1, 0);
       return ZOOM_STEPS[Math.max(0, next)];
     });
   };
 
-  const goToPage = (value: number) => {
-    if (!doc) return;
-    setPage(Math.min(Math.max(Math.round(value), 1), doc.numPages));
-  };
+  const goToPage = useCallback(
+    (value: number) => {
+      if (!doc) return;
+      setPage(Math.min(Math.max(Math.round(value), 1), doc.numPages));
+    },
+    [doc],
+  );
 
   const toggleFullscreen = async () => {
     try {
@@ -232,8 +803,145 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
     }
   };
 
+  const flushAndClose = useCallback(() => {
+    if (fileId && dirtyRef.current) void persist(latestStrokesRef.current);
+    onClose();
+  }, [fileId, onClose, persist]);
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (!file) return;
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target !== null &&
+        (/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName) || target.isContentEditable);
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+      if (typing) {
+        if (event.key === 'Escape') {
+          setSearchOpen(false);
+          if (target) target.blur();
+        }
+        return;
+      }
+      if (event.key === 'Escape') {
+        if (ocrOpen) closeOcr();
+        else if (searchOpen) setSearchOpen(false);
+        else if (tool !== 'read') setTool('read');
+        else if (document.fullscreenElement) void document.exitFullscreen();
+        else flushAndClose();
+      } else if (event.key === 'ArrowRight' || event.key === 'PageDown') {
+        setPage((current) => Math.min(current + 1, doc?.numPages ?? current));
+      } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+        setPage((current) => Math.max(current - 1, 1));
+      } else if (event.key === '+' || event.key === '=') {
+        setZoom((current) => Math.min(3, +(current + 0.15).toFixed(2)));
+        setFitWidth(false);
+      } else if (event.key === '-') {
+        setZoom((current) => Math.max(0.5, +(current - 0.15).toFixed(2)));
+        setFitWidth(false);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [closeOcr, doc, file, flushAndClose, ocrOpen, searchOpen, tool]);
+
+  useEffect(() => {
+    if (searchOpen) {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    }
+  }, [searchOpen]);
+
+  // Text search runs page by page; hits are cached so repeated searches are quick.
+  useEffect(() => {
+    const needle = query.trim().toLowerCase();
+    if (!searchOpen || !doc || needle.length < 2) {
+      setSearchHits([]);
+      setSearching(false);
+      setSearchNote(null);
+      setSearchIndex(0);
+      return;
+    }
+    const token = searchTokenRef.current + 1;
+    searchTokenRef.current = token;
+    setSearching(true);
+    setSearchNote(null);
+
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const hits: SearchHit[] = [];
+        let sawText = false;
+        for (let number = 1; number <= doc.numPages; number += 1) {
+          if (searchTokenRef.current !== token) return;
+          let text = textCacheRef.current.get(number);
+          if (text === undefined) {
+            try {
+              const found = await doc.getPage(number);
+              const content = await found.getTextContent();
+              text = content.items
+                .map((item) => ('str' in item ? item.str : ''))
+                .join(' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toLowerCase();
+              textCacheRef.current.set(number, text);
+            } catch {
+              text = '';
+            }
+          }
+          if (text) sawText = true;
+          const count = countMatches(text, needle);
+          if (count) hits.push({ page: number, count });
+        }
+        if (searchTokenRef.current !== token) return;
+        setSearching(false);
+        setSearchHits(hits);
+        setSearchIndex(0);
+        if (!hits.length) {
+          setSearchNote(
+            sawText
+              ? 'No matches in this PDF.'
+              : 'No text layer found. Use the OCR button to read this page.',
+          );
+        } else {
+          setPage(hits[0].page);
+        }
+      })();
+    }, 320);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (searchTokenRef.current === token) searchTokenRef.current += 1;
+    };
+  }, [doc, ocrRevision, query, searchOpen]);
+
+  const stepSearch = useCallback(
+    (direction: 1 | -1) => {
+      if (!searchHits.length) return;
+      setSearchIndex((current) => {
+        const next = (current + direction + searchHits.length) % searchHits.length;
+        setPage(searchHits[next].page);
+        return next;
+      });
+    },
+    [searchHits],
+  );
+
   const pages = doc?.numPages ?? 0;
-  const percent = useMemo(() => `${Math.round(zoom * 100)}%`, [zoom]);
+  const percent = useMemo(
+    () => `${Math.round((viewport?.scale ?? zoom) * 100)}%`,
+    [viewport, zoom],
+  );
+  const pageStrokeCount = ink.strokes.filter((stroke) => stroke.page === page).length;
+  const canDraw = inkReady && !inkError && !inkLoading;
+  const totalMatches = searchHits.reduce((sum, hit) => sum + hit.count, 0);
+  const toolWidth =
+    tool === 'eraser' ? 18 : tool === 'highlighter' ? Math.max(12, brushSize * 4) : brushSize;
 
   if (!file) return null;
 
@@ -248,7 +956,7 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
       <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.08] bg-[var(--chrome-solid)] px-3 py-2">
         <button
           type="button"
-          onClick={onClose}
+          onClick={flushAndClose}
           aria-label="Close PDF"
           className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white"
         >
@@ -307,7 +1015,9 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
           >
             <ZoomOut className="h-4 w-4" />
           </button>
-          <span className="w-11 text-center text-[10.5px] tabular-nums text-slate-400">{percent}</span>
+          <span className="w-11 text-center text-[10.5px] tabular-nums text-slate-400">
+            {percent}
+          </span>
           <button
             type="button"
             onClick={() => changeZoom(1)}
@@ -358,6 +1068,89 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
           <Contrast className="h-4 w-4" />
         </button>
 
+        <button
+          type="button"
+          onClick={() => setSearchOpen((current) => !current)}
+          title="Search this PDF (Ctrl+F)"
+          aria-pressed={searchOpen}
+          className={`focus-ring grid h-8 w-8 place-items-center rounded-lg border transition ${
+            searchOpen
+              ? 'border-violet-400/30 bg-violet-500/[0.14] text-violet-200'
+              : 'border-white/[0.08] bg-white/[0.03] text-slate-400 hover:bg-white/[0.08] hover:text-white'
+          }`}
+        >
+          <Search className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleAi}
+          title="Ask AI about this page"
+          aria-pressed={aiOpen}
+          aria-label="Ask AI about this page"
+          className={`focus-ring flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[10.5px] font-semibold transition ${
+            aiOpen
+              ? 'border-violet-400/40 bg-violet-500/[0.18] text-violet-100'
+              : 'border-white/[0.08] bg-white/[0.03] text-slate-300 hover:bg-white/[0.08] hover:text-white'
+          }`}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          <span className="hidden md:inline">Ask AI</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => void runOcr(page)}
+          disabled={!doc || ocrLoading}
+          title={
+            ocrPages.length
+              ? `Read this page with OCR (${ocrPages.length} page${ocrPages.length === 1 ? '' : 's'} saved)`
+              : 'Read this page with OCR'
+          }
+          aria-label="OCR this page"
+          className="focus-ring relative grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {ocrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanText className="h-4 w-4" />}
+          {ocrPages.length > 0 && (
+            <span className="absolute right-1.5 top-1.5 h-1 w-1 rounded-full bg-emerald-400" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (!canDraw) return;
+            setTool((current) => (current === 'read' ? 'pen' : 'read'));
+          }}
+          disabled={!canDraw}
+          title={inkError ?? 'Draw on this PDF'}
+          aria-label={tool === 'read' ? 'Draw on this PDF' : 'Stop drawing'}
+          aria-pressed={tool !== 'read'}
+          className={`focus-ring relative flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[10.5px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
+            tool !== 'read'
+              ? 'border-violet-400/40 bg-violet-500/[0.18] text-violet-100'
+              : 'border-white/[0.08] bg-white/[0.03] text-slate-300 hover:bg-white/[0.08] hover:text-white'
+          }`}
+        >
+          {inkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PenLine className="h-3.5 w-3.5" />}
+          <span className="hidden sm:inline">Draw</span>
+          {ink.strokes.length > 0 && (
+            <span className="rounded-full bg-violet-500/30 px-1.5 text-[9px] leading-4 text-violet-100">
+              {ink.strokes.length > 99 ? '99+' : ink.strokes.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSidebarOpen((current) => !current)}
+          title={sidebarOpen ? 'Hide page thumbnails' : 'Show page thumbnails'}
+          aria-pressed={sidebarOpen}
+          className="focus-ring hidden h-8 w-8 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-slate-400 transition hover:bg-white/[0.08] hover:text-white md:grid"
+        >
+          {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+        </button>
+
         <a
           href={url ?? undefined}
           download={file.fileName}
@@ -377,32 +1170,480 @@ export function PdfViewer({ file, onClose }: PdfViewerProps) {
         </button>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-auto bg-[#14161d] px-4 py-5"
-        onDoubleClick={() => void toggleFullscreen()}
-      >
-        {loading && (
-          <div className="flex h-full items-center justify-center gap-2 text-[12px] text-slate-400">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Opening PDF…
+      {tool !== 'read' && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-violet-400/15 bg-[#12101c] px-3 py-1.5">
+          <div className="flex items-center rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
+            {(
+              [
+                { id: 'pen', label: 'Pen', icon: PenLine },
+                { id: 'highlighter', label: 'Highlighter', icon: Highlighter },
+                { id: 'eraser', label: 'Eraser', icon: Eraser },
+              ] as const
+            ).map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setTool(item.id)}
+                  title={item.label}
+                  aria-pressed={tool === item.id}
+                  className={`focus-ring flex h-7 items-center gap-1 rounded-md px-2 text-[10.5px] font-medium transition ${
+                    tool === item.id
+                      ? 'bg-violet-500/25 text-violet-100'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span className="hidden lg:inline">{item.label}</span>
+                </button>
+              );
+            })}
           </div>
-        )}
 
-        {error && !loading && (
-          <div className="mx-auto mt-16 max-w-sm rounded-xl border border-rose-400/20 bg-rose-500/[0.08] px-4 py-5 text-center">
-            <p className="text-[12.5px] text-rose-200">{error}</p>
+          {tool !== 'eraser' && (
+            <div className="flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-1.5 py-1">
+              {INK_COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setBrushColor(color)}
+                  title={`Colour ${color}`}
+                  aria-label={`Ink colour ${color}`}
+                  aria-pressed={brushColor === color}
+                  className={`h-4 w-4 rounded-full border transition ${
+                    brushColor === color
+                      ? 'scale-110 border-white/80 shadow-[0_0_0_2px_rgba(255,255,255,0.16)]'
+                      : 'border-white/20 hover:scale-110'
+                  }`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          )}
+
+          <label className="flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[10px] text-slate-400">
+            <span className="hidden sm:inline">Size</span>
+            <input
+              type="range"
+              min={1}
+              max={8}
+              step={1}
+              value={brushSize}
+              onChange={(event) => setBrushSize(Number(event.target.value))}
+              className="h-1 w-16 accent-violet-400"
+              aria-label="Brush size"
+            />
+            <span className="w-3 text-center tabular-nums text-slate-300">{brushSize}</span>
+          </label>
+
+          <div className="flex items-center rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
+            <button
+              type="button"
+              onClick={undo}
+              disabled={!ink.undo.length}
+              title="Undo"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-30"
+            >
+              <Undo2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={redo}
+              disabled={!ink.redo.length}
+              title="Redo"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-30"
+            >
+              <Redo2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={clearPage}
+              disabled={!pageStrokeCount}
+              title="Clear ink on this page"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-md text-slate-400 transition hover:bg-rose-500/15 hover:text-rose-200 disabled:opacity-30"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
           </div>
-        )}
 
-        <div className={`flex justify-center ${loading || error ? 'hidden' : ''}`}>
-          <canvas
-            ref={canvasRef}
-            className="rounded-sm shadow-[0_18px_50px_-12px_rgba(0,0,0,0.8)]"
-            style={{ filter: invert ? 'invert(1) hue-rotate(180deg)' : undefined }}
-          />
+          <span className="text-[10px] text-slate-500">
+            {pageStrokeCount ? `${pageStrokeCount} stroke${pageStrokeCount === 1 ? '' : 's'} on page` : 'Draw with a pen, stylus or finger'}
+          </span>
+
+          <div className="ml-auto flex items-center gap-2">
+            <span aria-live="polite" className="text-[10px] text-slate-500">
+              {saveState === 'saving' ? (
+                <span className="flex items-center gap-1 text-slate-400">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Saving…
+                </span>
+              ) : saveState === 'error' ? (
+                <button
+                  type="button"
+                  onClick={() => void persist(ink.strokes)}
+                  title={saveError ?? undefined}
+                  className="flex items-center gap-1 text-rose-300 hover:text-rose-200"
+                >
+                  <AlertCircle className="h-3 w-3" /> Save failed — retry
+                </button>
+              ) : dirty ? (
+                'Unsaved changes'
+              ) : saveState === 'saved' ? (
+                <span className="flex items-center gap-1 text-emerald-300/80">
+                  <Check className="h-3 w-3" /> Saved
+                </span>
+              ) : null}
+            </span>
+            <button
+              type="button"
+              onClick={() => setTool('read')}
+              className="focus-ring flex h-7 items-center gap-1 rounded-lg border border-white/[0.1] bg-white/[0.05] px-2 text-[10.5px] font-medium text-slate-200 transition hover:bg-white/[0.1]"
+            >
+              <Check className="h-3.5 w-3.5" /> Done
+            </button>
+          </div>
         </div>
+      )}
+
+      {searchOpen && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-[#10131a] px-3 py-1.5">
+          <Search className="h-3.5 w-3.5 text-slate-500" />
+          <form
+            className="flex min-w-[180px] flex-1 items-center gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              stepSearch(1);
+            }}
+          >
+            <input
+              ref={searchInputRef}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search this PDF…"
+              aria-label="Search this PDF"
+              className="h-7 w-full max-w-sm rounded-md border border-white/[0.1] bg-white/[0.04] px-2 text-[11.5px] text-slate-200 outline-none placeholder:text-slate-600 focus:border-violet-400/40"
+            />
+          </form>
+          <span className="text-[10.5px] text-slate-500">
+            {searching
+              ? 'Searching…'
+              : searchHits.length
+                ? `${totalMatches} match${totalMatches === 1 ? '' : 'es'} · ${searchHits.length} page${
+                    searchHits.length === 1 ? '' : 's'
+                  }`
+                : searchNote ?? (query.trim().length > 0 && query.trim().length < 2 ? 'Type at least 2 letters' : '')}
+          </span>
+          <div className="flex items-center rounded-lg border border-white/[0.08] bg-white/[0.03]">
+            <button
+              type="button"
+              onClick={() => stepSearch(-1)}
+              disabled={!searchHits.length}
+              title="Previous match"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-l-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-30"
+            >
+              <ChevronUp className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => stepSearch(1)}
+              disabled={!searchHits.length}
+              title="Next match"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-r-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-30"
+            >
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          {searchHits.length > 0 && (
+            <span className="text-[10px] tabular-nums text-slate-500">
+              {searchIndex + 1}/{searchHits.length}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => setSearchOpen(false)}
+            aria-label="Close search"
+            className="focus-ring grid h-7 w-7 place-items-center rounded-md text-slate-500 transition hover:bg-white/[0.08] hover:text-white"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
+      {inkError && (
+        <div className="flex items-center gap-2 border-b border-amber-400/20 bg-amber-500/[0.08] px-3 py-1.5 text-[10.5px] text-amber-100">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">{inkError} Drawing is paused so notes cannot be overwritten.</span>
+          <button
+            type="button"
+            onClick={() => setInkReload((current) => current + 1)}
+            className="rounded border border-amber-300/30 px-2 py-0.5 font-medium transition hover:bg-amber-400/10"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      <div className="relative flex min-h-0 flex-1">
+        {sidebarOpen && doc && (
+          <aside
+            aria-label="Page thumbnails"
+            className="hidden w-[132px] shrink-0 overflow-y-auto border-r border-white/[0.06] bg-[#0d0f15] p-2 md:block"
+          >
+            <div className="flex flex-col gap-1.5">
+              {Array.from({ length: pages }, (_, index) => (
+                <PdfThumbnail
+                  key={index + 1}
+                  doc={doc}
+                  pageNumber={index + 1}
+                  active={page === index + 1}
+                  onSelect={goToPage}
+                />
+              ))}
+            </div>
+          </aside>
+        )}
+
+        <div
+          ref={scrollRef}
+          className="relative flex-1 overflow-auto bg-[#14161d] px-4 py-5"
+          onDoubleClick={(event) => {
+            if ((event.target as HTMLElement).closest('[data-pdf-ink]')) return;
+            void toggleFullscreen();
+          }}
+        >
+          {loading && (
+            <div className="flex h-full items-center justify-center gap-2 text-[12px] text-slate-400">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Opening PDF…
+            </div>
+          )}
+
+          {error && !loading && (
+            <div className="mx-auto mt-16 max-w-sm rounded-xl border border-rose-400/20 bg-rose-500/[0.08] px-4 py-5 text-center">
+              <p className="text-[12.5px] text-rose-200">{error}</p>
+            </div>
+          )}
+
+          <div className={`flex justify-center ${loading || error ? 'hidden' : ''}`}>
+            <div
+              className="relative shrink-0 rounded-sm shadow-[0_18px_50px_-12px_rgba(0,0,0,0.8)]"
+              style={{
+                width: viewport ? Math.floor(viewport.width) : undefined,
+                height: viewport ? Math.floor(viewport.height) : undefined,
+              }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="block"
+                style={{ filter: invert ? 'invert(1) hue-rotate(180deg)' : undefined }}
+              />
+              <PdfInkLayer
+                page={page}
+                viewport={viewport}
+                strokes={ink.strokes}
+                tool={canDraw ? tool : 'read'}
+                color={brushColor}
+                brushSize={toolWidth}
+                onAddStroke={addStroke}
+                onErase={eraseStrokes}
+              />
+            </div>
+          </div>
+        </div>
+
+        {aiOpen && (
+          <PdfAiPanel
+            page={page}
+            pageCount={pages}
+            ai={aiStatus}
+            messages={aiMessages}
+            question={aiQuestion}
+            busy={aiBusy}
+            error={aiError}
+            onQuestion={setAiQuestion}
+            onSend={(prompt) => void sendAiQuestion(prompt)}
+            onClose={() => setAiOpen(false)}
+            onOpenSettings={onOpenSettings}
+          />
+        )}
       </div>
+
+      {ocrOpen && (
+        <div
+          className="fixed inset-0 z-[95] flex items-center justify-center bg-black/65 p-5"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeOcr();
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Recognized text for page ${ocrResult?.page ?? page}`}
+            className="flex max-h-[82vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/[0.1] bg-[#11131b] shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9)]"
+          >
+            <div className="flex items-start gap-3 border-b border-white/[0.07] px-5 py-3.5">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-violet-500/15 text-violet-200">
+                <ScanText className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-semibold text-slate-100">Recognized text</p>
+                <p className="truncate text-[10.5px] text-slate-500">
+                  Page {ocrResult?.page ?? page}
+                  {ocrResult && !ocrResult.skipped
+                    ? ` · ${ocrResult.words} word${ocrResult.words === 1 ? '' : 's'}`
+                    : ''}{' '}
+                  · the PDF is not changed
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeOcr}
+                aria-label="Close recognized text"
+                className="focus-ring grid h-7 w-7 place-items-center rounded-md text-slate-500 transition hover:bg-white/[0.08] hover:text-white"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+              <div className="mb-4 rounded-xl border border-violet-400/20 bg-violet-500/[0.06] px-4 py-3.5">
+                <div className="flex flex-wrap items-start gap-3">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-violet-500/15 text-violet-200">
+                    <Sparkles className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-medium text-violet-100">Handwritten notes</p>
+                    <p className="mt-1 text-[11px] leading-5 text-slate-400">
+                      PdfCraft reads printed text. Ask your AI provider to read the ink you drew on
+                      this page too — it is added to search for this PDF.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void readHandwriting()}
+                    disabled={handwritingBusy || ocrLoading || !aiStatus?.configured}
+                    className="focus-ring flex h-7 shrink-0 items-center gap-1.5 rounded-lg border border-violet-300/30 bg-violet-500/[0.14] px-2.5 text-[10.5px] font-semibold text-violet-100 transition hover:bg-violet-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {handwritingBusy ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    {handwritingBusy ? 'Reading…' : 'Read handwriting'}
+                  </button>
+                </div>
+
+                {!aiStatus?.configured && (
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[10.5px] text-slate-500">
+                    <span>Add your own AI API key to read handwriting.</span>
+                    <button
+                      type="button"
+                      onClick={onOpenSettings}
+                      className="focus-ring rounded-md border border-white/[0.12] px-2 py-0.5 font-medium text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
+                    >
+                      Open AI settings
+                    </button>
+                  </div>
+                )}
+
+                {handwritingError && (
+                  <div className="mt-2.5 rounded-lg border border-rose-400/20 bg-rose-500/[0.07] px-3 py-2 text-[10.5px] leading-5 text-rose-100">
+                    {handwritingError}
+                  </div>
+                )}
+
+                {handwritingText !== null && (
+                  <div className="mt-2.5 rounded-lg border border-white/[0.08] bg-[#0b0d13]/60 px-3 py-2.5">
+                    {handwritingFound ? (
+                      <>
+                        <pre className="select-text whitespace-pre-wrap font-sans text-[12px] leading-6 text-slate-200">
+                          {handwritingText}
+                        </pre>
+                        <p className="mt-2 text-[10px] text-slate-500">
+                          Saved on this computer and added to this PDF's search.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-[11px] text-slate-400">
+                        No handwriting was found on this page.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {ocrLoading && (
+                <div className="flex items-center gap-2 py-6 text-[12px] text-slate-400">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Reading page {page} with PdfCraft OCR…
+                </div>
+              )}
+
+              {ocrError && !ocrLoading && (
+                <div className="rounded-xl border border-rose-400/20 bg-rose-500/[0.07] px-4 py-3.5">
+                  <p className="text-[12px] font-medium text-rose-200">OCR could not read this page</p>
+                  <p className="mt-1 text-[11.5px] leading-5 text-rose-100/80">{ocrError}</p>
+                  <p className="mt-2 text-[10.5px] leading-5 text-slate-500">
+                    This uses the PdfCraft engine installed on this computer. Install PdfCraft, or set
+                    PDFCRAFT_CLI to its pdfcraft-cli path, then try again.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void runOcr(page)}
+                    className="focus-ring mt-3 rounded-lg border border-rose-300/25 bg-rose-400/10 px-2.5 py-1 text-[10.5px] font-medium text-rose-100 transition hover:bg-rose-400/20"
+                  >
+                    Try page {page} again
+                  </button>
+                </div>
+              )}
+
+              {ocrResult && !ocrLoading && !ocrError && ocrResult.skipped && (
+                <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/[0.06] px-4 py-3.5">
+                  <p className="text-[12px] font-medium text-emerald-200">This page already has text</p>
+                  <p className="mt-1 text-[11.5px] leading-5 text-emerald-100/70">
+                    {ocrResult.skipped}. Its words can already be selected and found with search, so
+                    no OCR text needed to be added.
+                  </p>
+                </div>
+              )}
+
+              {ocrResult && !ocrLoading && !ocrError && !ocrResult.skipped && ocrResult.text && (
+                <pre className="select-text whitespace-pre-wrap font-sans text-[12.5px] leading-6 text-slate-200">
+                  {ocrResult.text}
+                </pre>
+              )}
+
+              {ocrResult &&
+                !ocrLoading &&
+                !ocrError &&
+                !ocrResult.skipped &&
+                !ocrResult.text && (
+                  <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3.5 text-[11.5px] text-slate-400">
+                    No words were recognized on this page. The page may be blank, or the scan may be
+                    too faint.
+                  </div>
+                )}
+            </div>
+
+            {ocrResult?.text && !ocrError && !ocrLoading && (
+              <div className="flex items-center justify-between gap-3 border-t border-white/[0.07] px-5 py-2.5">
+                <p className="text-[10.5px] text-slate-500">
+                  Saved for this PDF, so later searches can find these words.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void copyOcrText()}
+                  className="focus-ring flex h-7 shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.05] px-2.5 text-[10.5px] font-medium text-slate-200 transition hover:bg-white/[0.1]"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? 'Copied' : 'Copy text'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

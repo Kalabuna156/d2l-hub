@@ -169,6 +169,12 @@ export function removeLibraryFile(id: unknown): boolean {
   if (!file) return false;
 
   discardStored(file);
+  // Ink notes and OCR text belong to this file; do not leave them orphaned.
+  if (/^lib-[a-z0-9-]{4,80}$/i.test(key)) {
+    for (const folder of ['annotations', 'ocr']) {
+      fs.rmSync(path.join(DATA_DIR, folder, `${key}.json`), { force: true });
+    }
+  }
   updateConfig((config) => ({
     ...config,
     contentFiles: config.contentFiles.filter((entry) => entry.id !== key),

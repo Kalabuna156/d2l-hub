@@ -43,6 +43,9 @@ import {
   uploadLibraryFile,
 } from './library';
 import { addExamBankSource, listExamBanks, loadExamBank, removeExamBankSource } from './exambank';
+import { readPdfInk, savePdfInk } from './annotations';
+import { OcrUnavailableError, readOcrText, recognizePdfPage } from './ocr';
+import { askAiAboutPage, transcribeHandwriting } from './page-ai';
 import { aiStatus, forgetAiKey, saveAiSettings, testAi } from './ai';
 import { readCourseForm } from './course-form';
 import { saveOutline, scanCourseOutlines } from './outlines';
@@ -55,7 +58,9 @@ const app = express();
 const envPort = Number(process.env.PORT);
 const PORT = Number.isInteger(envPort) && envPort > 1024 && envPort < 65536 ? envPort : 8787;
 
-app.use(express.json({ limit: '100kb' }));
+// Ink layers and page screenshots travel as one JSON document per request, so
+// this is above the usual API payload; every route still validates its input.
+app.use(express.json({ limit: '8mb' }));
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
@@ -274,6 +279,39 @@ app.post('/api/ai/forget', (_req, res) => {
   res.json(forgetAiKey());
 });
 
+// Ask about the page the student is looking at. Only that page's text and
+// screenshot are sent, and the page is never stored by the app.
+app.post('/api/ai/page', async (req, res) => {
+  try {
+    res.json(await askAiAboutPage(req.body ?? {}));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'The AI could not answer.';
+    const status = /Settings → AI|API key|question|page|image/i.test(message) ? 400 : 502;
+    res.status(status).json({ error: message });
+  }
+});
+
+// AI handwriting joins PdfCraft OCR in the same searchable sidecar.
+app.post('/api/library/:id/ocr/handwriting', async (req, res) => {
+  try {
+    res.json(
+      await transcribeHandwriting({
+        ...(req.body ?? {}),
+        id: req.params.id,
+      }),
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not read the handwriting.';
+    const status =
+      /no longer in Content Space/i.test(message)
+        ? 404
+        : /Settings → AI|API key|page|image/i.test(message)
+          ? 400
+          : 502;
+    res.status(status).json({ error: message });
+  }
+});
+
 app.post('/api/outlines/scan', async (_req, res) => {
   try {
     res.json(await scanCourseOutlines());
@@ -422,6 +460,59 @@ app.get('/api/library/file/:id', (req, res) => {
   res.sendFile(found.filePath, { dotfiles: 'allow' }, (error) => {
     if (error && !res.headersSent) res.status(404).json({ error: 'That file is missing on disk.' });
   });
+});
+
+// Freehand notes over a PDF, saved beside the file on this computer.
+app.get('/api/library/:id/annotations', (req, res) => {
+  try {
+    // A stale cached copy would hide ink the viewer just saved.
+    res.setHeader('cache-control', 'no-store');
+    res.json(readPdfInk(req.params.id));
+  } catch (error) {
+    res.status(404).json({ error: error instanceof Error ? error.message : 'Could not open annotations.' });
+  }
+});
+
+app.put('/api/library/:id/annotations', (req, res) => {
+  try {
+    res.json(savePdfInk(req.params.id, req.body));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not save annotations.';
+    const status = /no longer in Content Space/i.test(message)
+      ? 404
+      : /too large/i.test(message)
+        ? 413
+        : 400;
+    res.status(status).json({ error: message });
+  }
+});
+
+// Scanned PDFs: PdfCraft reads one page and the text is kept in a sidecar so
+// it can be searched again later. The PDF bytes are never rewritten.
+app.get('/api/library/:id/ocr', (req, res) => {
+  try {
+    res.setHeader('cache-control', 'no-store');
+    res.json({ pages: readOcrText(req.params.id) });
+  } catch (error) {
+    res.status(404).json({ error: error instanceof Error ? error.message : 'Could not open OCR text.' });
+  }
+});
+
+app.post('/api/library/:id/ocr', async (req, res) => {
+  try {
+    res.json(await recognizePdfPage(req.params.id, req.body?.page));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not read this page.';
+    const status =
+      error instanceof OcrUnavailableError
+        ? 503
+        : /no longer in Content Space/i.test(message)
+          ? 404
+          : /models|not available/i.test(message)
+            ? 503
+            : 400;
+    res.status(status).json({ error: message });
+  }
 });
 
 app.get('/api/exambank', async (req, res) => {

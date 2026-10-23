@@ -14,7 +14,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { MUES_BANK } from '../../shared/exambank';
-import type { DriveEntry, ExamBankFolder, ExamBankLink, LibraryFile } from '../../shared/types';
+import type { AiStatus, DriveEntry, ExamBankFolder, ExamBankLink, LibraryFile } from '../../shared/types';
 import { downloadExamBankFile, fetchExamBank } from '../lib/api';
 import { PdfViewer } from './PdfViewer';
 
@@ -23,6 +23,8 @@ interface ExamBankProps {
   banks?: ExamBankLink[];
   /** Lets the rest of the app pick up anything saved here. */
   onSaved?: () => void;
+  ai?: AiStatus | null;
+  onOpenSettings?: () => void;
 }
 
 interface Crumb {
@@ -34,7 +36,7 @@ function isPdfEntry(entry: DriveEntry): boolean {
   return /pdf/i.test(entry.type) || /\.pdf$/i.test(entry.name);
 }
 
-export function ExamBank({ banks, onSaved }: ExamBankProps) {
+export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBankProps) {
   const bankList = useMemo(() => (banks && banks.length > 0 ? banks : [MUES_BANK]), [banks]);
   const [activeId, setActiveId] = useState(bankList[0].id);
   const activeBank = bankList.find((bank) => bank.id === activeId) ?? bankList[0];
@@ -369,7 +371,14 @@ export function ExamBank({ banks, onSaved }: ExamBankProps) {
         Files you save stay on this computer; nothing is uploaded.
       </p>
 
-      {viewing ? <PdfViewer file={viewing} onClose={() => setViewing(null)} /> : null}
+      {viewing ? (
+        <PdfViewer
+          file={viewing}
+          ai={ai}
+          onOpenSettings={onOpenSettings ?? (() => undefined)}
+          onClose={() => setViewing(null)}
+        />
+      ) : null}
     </div>
   );
 }

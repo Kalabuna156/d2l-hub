@@ -26,6 +26,10 @@ interface ScheduleGridProps {
   onCreate: (startsAt: string, endsAt: string) => void;
   /** Called after a dragged block was saved, so the page can reload. */
   onMoved?: () => void;
+  /** Week to show when the Calendar tab owns the range controls. */
+  weekStart?: Date;
+  /** Hides the grid's own title and navigation, for the Calendar tab toolbar. */
+  embedded?: boolean;
 }
 
 /** Shown on the empty space under the pointer, before the click lands. */
@@ -72,8 +76,12 @@ export function ScheduleGrid({
   onEdit,
   onCreate,
   onMoved,
+  weekStart: weekStartProp,
+  embedded = false,
 }: ScheduleGridProps) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  // The Calendar tab drives the week; without it the grid keeps its own state.
+  const viewedWeek = weekStartProp ?? weekStart;
   const [hover, setHover] = useState<HoverSlot | null>(null);
   const [drag, setDrag] = useState<DragSession | null>(null);
   const [blockDrag, setBlockDrag] = useState<BlockDrag | null>(null);
@@ -99,8 +107,11 @@ export function ScheduleGrid({
     [events, pending],
   );
 
-  const days = useMemo(() => weekDays(weekStart), [weekStart]);
-  const layout = useMemo(() => layoutWeek(displayEvents, weekStart), [displayEvents, weekStart]);
+  const days = useMemo(() => weekDays(viewedWeek), [viewedWeek]);
+  const layout = useMemo(
+    () => layoutWeek(displayEvents, viewedWeek),
+    [displayEvents, viewedWeek],
+  );
   const classes = useMemo(
     () =>
       displayEvents.filter(
@@ -136,7 +147,7 @@ export function ScheduleGrid({
     return list;
   }, [layout.startMin, layout.endMin]);
 
-  const onCurrentWeek = weekStart.getTime() === startOfWeek(new Date()).getTime();
+  const onCurrentWeek = viewedWeek.getTime() === startOfWeek(new Date()).getTime();
 
   /** Time from a pointer position, snapped down to the half hour like Google's grid. */
   const slotAt = (mouse: React.MouseEvent<HTMLDivElement>): number => {
@@ -388,71 +399,73 @@ export function ScheduleGrid({
   };
 
   return (
-    <section className="panel overflow-hidden">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-white/[0.06] px-4 py-3">
-        <span className="grid h-6 w-6 place-items-center rounded-md bg-sky-400/15 text-sky-200 ring-1 ring-inset ring-sky-300/25">
-          <School className="h-3.5 w-3.5" />
-        </span>
-        <h2 className="font-display text-[13px] font-semibold text-slate-100">Class week</h2>
-        <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
-          {layout.blocks.length}
-        </span>
-        {calendarName && (
-          <span className="hidden truncate text-[11px] text-slate-600 sm:block">· {calendarName}</span>
-        )}
-
-        <div className="ml-auto flex items-center gap-1.5">
-          <span className="hidden items-center gap-1 text-[10.5px] text-slate-600 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/70" />
-            Updated {syncTime(fetchedAt)}
+    <section className={embedded ? 'overflow-hidden' : 'panel overflow-hidden'}>
+      {!embedded && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-white/[0.06] px-4 py-3">
+          <span className="grid h-6 w-6 place-items-center rounded-md bg-sky-400/15 text-sky-200 ring-1 ring-inset ring-sky-300/25">
+            <School className="h-3.5 w-3.5" />
           </span>
-          <button
-            type="button"
-            onClick={addDefault}
-            aria-label="Add event"
-            title="Add an event"
-            className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-slate-200"
-          >
-            <CalendarPlus className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={refreshing}
-            aria-label="Sync calendars now"
-            title="Sync calendars now"
-            className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-slate-200 disabled:opacity-60"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
-          <div className="flex items-center rounded-lg border border-white/[0.07] bg-white/[0.03] p-0.5">
+          <h2 className="font-display text-[13px] font-semibold text-slate-100">Class week</h2>
+          <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
+            {layout.blocks.length}
+          </span>
+          {calendarName && (
+            <span className="hidden truncate text-[11px] text-slate-600 sm:block">· {calendarName}</span>
+          )}
+
+          <div className="ml-auto flex items-center gap-1.5">
+            <span className="hidden items-center gap-1 text-[10.5px] text-slate-600 sm:flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/70" />
+              Updated {syncTime(fetchedAt)}
+            </span>
             <button
               type="button"
-              onClick={() => setWeekStart((current) => addDays(current, -7))}
-              aria-label="Previous week"
-              className="focus-ring grid h-6 w-6 place-items-center rounded-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
+              onClick={addDefault}
+              aria-label="Add event"
+              title="Add an event"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-slate-200"
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
+              <CalendarPlus className="h-3.5 w-3.5" />
             </button>
             <button
               type="button"
-              onClick={() => setWeekStart(startOfWeek(new Date()))}
-              disabled={onCurrentWeek}
-              className="focus-ring rounded-md px-2 text-[10.5px] font-medium text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:text-slate-600 disabled:hover:bg-transparent"
+              onClick={onRefresh}
+              disabled={refreshing}
+              aria-label="Sync calendars now"
+              title="Sync calendars now"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-slate-200 disabled:opacity-60"
             >
-              Today
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
-            <button
-              type="button"
-              onClick={() => setWeekStart((current) => addDays(current, 7))}
-              aria-label="Next week"
-              className="focus-ring grid h-6 w-6 place-items-center rounded-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
-            >
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
+            <div className="flex items-center rounded-lg border border-white/[0.07] bg-white/[0.03] p-0.5">
+              <button
+                type="button"
+                onClick={() => setWeekStart((current) => addDays(current, -7))}
+                aria-label="Previous week"
+                className="focus-ring grid h-6 w-6 place-items-center rounded-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setWeekStart(startOfWeek(new Date()))}
+                disabled={onCurrentWeek}
+                className="focus-ring rounded-md px-2 text-[10.5px] font-medium text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:text-slate-600 disabled:hover:bg-transparent"
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => setWeekStart((current) => addDays(current, 7))}
+                aria-label="Next week"
+                className="focus-ring grid h-6 w-6 place-items-center rounded-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {blockError && (
         <div className="flex items-center gap-2 border-b border-rose-400/20 bg-rose-500/[0.07] px-4 py-2 text-[11.5px] text-rose-200">
@@ -469,8 +482,10 @@ export function ScheduleGrid({
       )}
 
       <div className="flex items-baseline justify-between gap-3 px-4 pb-1 pt-2.5">
-        <p className="font-display text-[13.5px] font-semibold text-white">{weekLabel(weekStart)}</p>
-        <p className="text-[10.5px] text-slate-600">
+        {!embedded && (
+          <p className="font-display text-[13.5px] font-semibold text-white">{weekLabel(viewedWeek)}</p>
+        )}
+        <p className={`text-[10.5px] text-slate-600 ${embedded ? 'ml-auto' : ''}`}>
           {layout.blocks.length === 0
             ? 'No classes — click or drag a free slot to add an event'
             : `${layout.blocks.length} ${layout.blocks.length === 1 ? 'class' : 'classes'} · click or drag free space to add`}

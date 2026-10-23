@@ -520,9 +520,23 @@ export default function App() {
               }}
             />
           ) : view === 'library' ? (
-            <ContentSpace courses={courses} />
+            <ContentSpace
+              courses={courses}
+              ai={appState?.ai ?? null}
+              onOpenSettings={() => {
+                setSettingsTab('ai');
+                setSettingsOpen(true);
+              }}
+            />
           ) : (
-            <ExamBank banks={appState?.examBanks} />
+            <ExamBank
+              banks={appState?.examBanks}
+              ai={appState?.ai ?? null}
+              onOpenSettings={() => {
+                setSettingsTab('ai');
+                setSettingsOpen(true);
+              }}
+            />
           )}
         </main>
       </div>

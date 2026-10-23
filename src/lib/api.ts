@@ -1,4 +1,5 @@
 import type {
+  AiPageReply,
   AiProvider,
   AiStatus,
   AppState,
@@ -19,6 +20,10 @@ import type {
   NotificationFeed,
   NotionDatabaseList,
   OutlineScanResult,
+  PdfHandwritingResult,
+  PdfInkAnnotations,
+  PdfOcrResult,
+  PdfOcrText,
   Preferences,
   StudyPayload,
   StudyVideoChannel,
@@ -307,6 +312,11 @@ export function revealLibraryFile(id: string): Promise<{ ok: boolean }> {
   });
 }
 
+/** The current AI provider summary; the key itself never leaves the server. */
+export function fetchAiStatus(): Promise<AiStatus> {
+  return request<AiStatus>('/api/ai');
+}
+
 /** The user's own AI provider, saved on this computer. */
 export function saveAiSettings(input: {
   provider: AiProvider;
@@ -328,6 +338,22 @@ export function testAi(): Promise<{ provider: string; model: string }> {
 
 export function forgetAiKey(): Promise<AiStatus> {
   return request<AiStatus>('/api/ai/forget', { method: 'POST' });
+}
+
+/** Ask about the current PDF page; the screenshot may include ink notes. */
+export function askAiAboutPage(input: {
+  question: string;
+  page: number;
+  pageCount: number | null;
+  fileName: string;
+  pageText: string;
+  image: string | null;
+  history: Array<{ role: 'user' | 'assistant'; text: string }>;
+}): Promise<AiPageReply> {
+  return request<AiPageReply>('/api/ai/page', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }
 
 /** Find every course outline and let the AI read its dates. */
@@ -386,6 +412,47 @@ export function removeLibraryFile(id: string): Promise<{ files: LibraryFile[] }>
     method: 'POST',
     body: JSON.stringify({ id }),
   });
+}
+
+/** Ink notes stored beside a Content Space PDF. */
+export function fetchPdfInk(id: string): Promise<PdfInkAnnotations> {
+  return request<PdfInkAnnotations>(`/api/library/${encodeURIComponent(id)}/annotations`, {
+    cache: 'no-store',
+  });
+}
+
+export function savePdfInk(id: string, annotations: PdfInkAnnotations): Promise<PdfInkAnnotations> {
+  return request<PdfInkAnnotations>(`/api/library/${encodeURIComponent(id)}/annotations`, {
+    method: 'PUT',
+    body: JSON.stringify(annotations),
+  });
+}
+
+/** OCR text saved earlier for a PDF's scanned pages. */
+export function fetchPdfOcr(id: string): Promise<PdfOcrText> {
+  return request<PdfOcrText>(`/api/library/${encodeURIComponent(id)}/ocr`);
+}
+
+/** Read one page with the PdfCraft OCR engine on this computer. */
+export function recognizePdfPage(id: string, page: number): Promise<PdfOcrResult> {
+  return request<PdfOcrResult>(`/api/library/${encodeURIComponent(id)}/ocr`, {
+    method: 'POST',
+    body: JSON.stringify({ page }),
+  });
+}
+
+/** Read the ink notes on a page with the user's vision-capable AI provider. */
+export function transcribePdfHandwriting(
+  id: string,
+  input: { page: number; image: string; pageText: string },
+): Promise<PdfHandwritingResult> {
+  return request<PdfHandwritingResult>(
+    `/api/library/${encodeURIComponent(id)}/ocr/handwriting`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 /** The notification bell: D2L's alerts feed, newest first. */

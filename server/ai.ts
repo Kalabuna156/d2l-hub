@@ -119,10 +119,18 @@ export function forgetAiKey(): AiStatus {
   return aiStatus();
 }
 
+/** One page image sent with a question; base64 without the data URL prefix. */
+export interface AiImage {
+  mimeType: string;
+  data: string;
+}
+
 interface AskOptions {
   system?: string;
   json?: boolean;
   maxTokens?: number;
+  /** Page screenshots for vision-capable models. */
+  images?: AiImage[];
 }
 
 interface ProviderReply {
@@ -169,6 +177,17 @@ const GEMINI_FALLBACK_MODELS = [
   'gemini-3.5-flash-lite',
 ];
 const GEMINI_RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
+/**
+ * The newest Flash model can stall for minutes on an image request while a
+ * sibling answers in a couple of seconds. Images get a short leash and one
+ * overall budget, so a chat question never hangs waiting for it.
+ */
+const GEMINI_IMAGE_TIMEOUT_MS = 15_000;
+const GEMINI_TEXT_TIMEOUT_MS = 120_000;
+const GEMINI_IMAGE_BUDGET_MS = 45_000;
+/** Remember which model actually read an image, so the next page is fast. */
+const GEMINI_VISION_MEMORY_MS = 10 * 60_000;
+let geminiVisionModel: { model: string; until: number } | null = null;
 const GEMINI_LIST_URL =
   'https://generativelanguage.googleapis.com/v1beta/models?pageSize=200';
 const GEMINI_DISCOVERY_TTL_MS = 10 * 60_000;
@@ -249,26 +268,61 @@ async function callGemini(
 ): Promise<ProviderReply> {
   let lastStatus = 0;
   let lastDetail = '';
+  let timedOut = false;
   const tried = new Set<string>();
+  const vision = Boolean(options.images?.length);
+  const deadline = vision ? Date.now() + GEMINI_IMAGE_BUDGET_MS : Number.POSITIVE_INFINITY;
 
   const attempt = async (candidate: string, attempts: number): Promise<string | null> => {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidate)}:generateContent`;
 
     for (let index = 0; index < attempts; index += 1) {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          ...(options.system ? { systemInstruction: { parts: [{ text: options.system }] } } : {}),
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: options.maxTokens ?? 4096,
-            ...(options.json ? { responseMimeType: 'application/json' } : {}),
+      const remaining = deadline - Date.now();
+      if (vision && remaining < 5_000) return null;
+      const parts = [
+        ...(options.images ?? []).map((image) => ({
+          // Gemini's REST JSON uses the protobuf snake_case fields here.
+          inline_data: { mime_type: image.mimeType, data: image.data },
+        })),
+        { text: prompt },
+      ];
+      const requestBody = JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts,
           },
-        }),
-        signal: AbortSignal.timeout(120_000),
+        ],
+        ...(options.system ? { systemInstruction: { parts: [{ text: options.system }] } } : {}),
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: options.maxTokens ?? 4096,
+          ...(options.json ? { responseMimeType: 'application/json' } : {}),
+        },
       });
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+          body: requestBody,
+          signal: AbortSignal.timeout(
+            vision ? Math.min(GEMINI_IMAGE_TIMEOUT_MS, remaining) : GEMINI_TEXT_TIMEOUT_MS,
+          ),
+        });
+      } catch (error) {
+        if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+          timedOut = true;
+          lastStatus = 0;
+          lastDetail = 'timed out';
+          // A stalled image request is not worth a second wait on the same
+          // model; move straight to the next one.
+          if (vision) return null;
+          if (index === 0) await wait(1_200);
+          continue;
+        }
+        throw error;
+      }
 
       if (response.ok) {
         const body = (await response.json()) as {
@@ -279,7 +333,15 @@ async function callGemini(
           .map((part) => part.text ?? '')
           .join('')
           .trim();
-        if (!text) throw new Error('Gemini sent back an empty reply. Try again.');
+        if (!text) {
+          lastStatus = 200;
+          lastDetail = 'empty reply';
+          if (index === 0) await wait(600);
+          continue;
+        }
+        if (vision && candidate !== model) {
+          geminiVisionModel = { model: candidate, until: Date.now() + GEMINI_VISION_MEMORY_MS };
+        }
         return text;
       }
 
@@ -297,8 +359,18 @@ async function callGemini(
     return null;
   };
 
+  // A model that just read an image well goes first for the next question.
+  const known = geminiModelOrder(model);
+  const remembered =
+    vision && geminiVisionModel && geminiVisionModel.until > Date.now()
+      ? geminiVisionModel.model
+      : null;
+  const order = remembered
+    ? [remembered, ...known.filter((candidate) => candidate !== remembered)]
+    : known;
+
   // Known good siblings get two chances because a 503 spike is often brief.
-  for (const candidate of geminiModelOrder(model)) {
+  for (const candidate of order) {
     tried.add(candidate);
     const text = await attempt(candidate, 2);
     if (text) return { text };
@@ -314,6 +386,14 @@ async function callGemini(
     if (text) return { text };
   }
 
+  if (timedOut && lastStatus === 0) {
+    throw new Error(
+      vision
+        ? 'Gemini was too slow to read this page. Try again, or pick a different model in Settings → AI.'
+        : 'Gemini took too long to answer. Try again.',
+    );
+  }
+  if (lastStatus === 200) throw new Error('Gemini sent back an empty reply. Try again.');
   throw new Error(friendlyFailure('gemini', lastStatus, lastDetail));
 }
 
@@ -337,7 +417,18 @@ async function callOpenAi(
       model,
       messages: [
         ...(options.system ? [{ role: 'system', content: options.system }] : []),
-        { role: 'user', content: prompt },
+        {
+          role: 'user',
+          content: options.images?.length
+            ? [
+                { type: 'text', text: prompt },
+                ...options.images.map((image) => ({
+                  type: 'image_url',
+                  image_url: { url: `data:${image.mimeType};base64,${image.data}` },
+                })),
+              ]
+            : prompt,
+        },
       ],
       temperature: 0.2,
       max_tokens: options.maxTokens ?? 4096,
@@ -375,7 +466,24 @@ async function callAnthropic(
       max_tokens: options.maxTokens ?? 4096,
       temperature: 0.2,
       ...(options.system ? { system: options.system } : {}),
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        {
+          role: 'user',
+          content: options.images?.length
+            ? [
+                ...options.images.map((image) => ({
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: image.mimeType,
+                    data: image.data,
+                  },
+                })),
+                { type: 'text', text: prompt },
+              ]
+            : prompt,
+        },
+      ],
     }),
     signal: AbortSignal.timeout(120_000),
   });

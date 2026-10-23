@@ -382,6 +382,34 @@ fit-to-width, rotation, fullscreen, save-a-copy, and **invert colours** for a
 dark version of the page. Arrow keys turn pages, +/- zoom, Escape closes. The
 invert choice is remembered.
 
+The left edge shows page thumbnails, and **Search** (or Ctrl+F) reads the PDF's
+text and jumps between matches.
+
+**Draw** turns the page into an ink layer: pen, highlighter and eraser, six
+colours, a size slider, undo/redo and clear-page. A drawing tablet's pen sends
+pressure, so pen strokes get thicker and thinner with pressure; a mouse or
+finger works too. Notes autosave beside the PDF on this computer, stay aligned
+when you zoom or rotate, and are there the next time you open the file. The PDF
+itself is never modified, so **Save a copy** downloads the clean original.
+
+For scans without a text layer, **OCR** reads the current page with the
+[PdfCraft](https://github.com/storytold/pdfcraft) engine installed on this
+computer. The recognised words appear in a panel (with a copy button), are
+added to search immediately, and are kept in a small sidecar so later searches
+find them too. OCR never rewrites the PDF. Install PdfCraft in its standard
+location, or set `PDFCRAFT_CLI` to the CLI's path if it lives elsewhere.
+
+**Ask AI** opens a side panel for the page you are reading, so you can ask for an
+explanation, a summary or practice questions without copying a screenshot
+somewhere else. It sends the page's text and a screenshot, including anything you
+drew on it, to the provider set in Settings → AI. Only that page leaves the
+computer, the app stores no chat, and the panel starts empty for the next PDF.
+
+**Read handwriting** (in the OCR panel) uses the same AI to transcribe the ink
+on the page. The transcription appears in the panel and joins the PDF's saved
+searchable text next to any PdfCraft OCR text. A vision-capable model is needed;
+Gemini, GPT-4o and Claude models all work.
+
 ## MUES exam bank
 
 **Exam bank** in the sidebar browses the public MUES Google Drive folder inside
@@ -510,6 +538,9 @@ server/
               content modules/topics, gradebook
   demo.ts     sample data for the --demo preview only
   library.ts  downloads files into Content Space and serves them locally
+  annotations.ts  per-PDF ink sidecars, validated and written atomically
+  ocr.ts      PdfCraft CLI OCR for one page, with saved text sidecars
+  page-ai.ts  page questions and handwriting for the PDF reader's AI panel
   exambank.ts reads the public MUES Drive folder listing
   course-form.ts  course-outline PDF/text → dated assessments for the Calendar
   ai.ts       the user's own Gemini/OpenAI/Claude key and provider calls
@@ -532,11 +563,12 @@ src/
   components/ sidebar, top bar, course cards, course page, up-next, today card,
               calendar (week grid + deadline list), event dialog, connect
               dialog, settings dialog, backdrop, content space, exam bank,
-              PDF reader
+              PDF reader, ink layer, page thumbnails
   lib/schedule.ts     week math, class-block layout and overlapping columns
   lib/preferences.ts  accent + backdrop catalogs and the theme applier
   lib/format.ts       dates, relative labels and the urgency colours
-  lib/pdf-polyfills.ts Uint8Array helpers pdf.js needs on older Chromium
+  lib/pdf-polyfills.ts Uint8Array/Map helpers pdf.js needs on older Chromium
+  lib/pdf-ink.ts      ink drawing, coordinate conversion and eraser hit testing
   lib/google-calendar.ts prefilled Google Calendar hand-off links
 tests/        parser, integration, course page and categorization tests (vitest)
 ```

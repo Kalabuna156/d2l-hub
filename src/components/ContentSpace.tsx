@@ -15,7 +15,7 @@ import {
   Trash2,
   Trash,
 } from 'lucide-react';
-import type { Course, LibraryFile } from '../../shared/types';
+import type { AiStatus, Course, LibraryFile } from '../../shared/types';
 import { groupLibraryFiles } from '../../shared/library';
 import { fetchLibrary, removeLibraryFile, revealLibraryFile, uploadLibraryFile } from '../lib/api';
 import { PdfViewer } from './PdfViewer';
@@ -49,7 +49,15 @@ function isPdf(file: LibraryFile): boolean {
   return file.mime === 'application/pdf' || /\.pdf$/i.test(file.fileName);
 }
 
-export function ContentSpace({ courses = [] }: { courses?: Course[] }) {
+export function ContentSpace({
+  courses = [],
+  ai = null,
+  onOpenSettings,
+}: {
+  courses?: Course[];
+  ai?: AiStatus | null;
+  onOpenSettings?: () => void;
+}) {
   const [files, setFiles] = useState<LibraryFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -511,7 +519,12 @@ export function ContentSpace({ courses = [] }: { courses?: Course[] }) {
       />
 
       {viewing && isPdf(viewing) ? (
-        <PdfViewer file={viewing} onClose={() => setViewing(null)} />
+        <PdfViewer
+          file={viewing}
+          ai={ai}
+          onOpenSettings={onOpenSettings ?? (() => undefined)}
+          onClose={() => setViewing(null)}
+        />
       ) : viewing ? (
         <div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" role="dialog">
           <div className="panel w-full max-w-sm px-5 py-5 text-center">
