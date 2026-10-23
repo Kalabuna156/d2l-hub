@@ -41,7 +41,7 @@ The debug APK is signed with the standard Android debug key, which is fine for s
 
 ## Install
 
-Copy the APK to the phone and open it (allow installs from this source when prompted), or use `adb install -r D2L-Hub-0.8.0-android.apk`. Android 8.0 (API 26) or newer is required.
+Copy the APK to the phone and open it (allow installs from this source when prompted), or use `adb install -r D2L-Hub-0.1.0-android.apk`. Android 8.0 (API 26) or newer is required.
 
 ## Connecting calendars
 

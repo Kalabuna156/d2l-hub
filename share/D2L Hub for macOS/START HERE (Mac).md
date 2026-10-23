@@ -82,8 +82,8 @@ or double-click **Build installers.command** (already marked runnable by the
 `chmod` above). After a few minutes `release/`
 opens in Finder with:
 
-- `D2L Hub-0.1.0-mac-arm64.dmg` — Apple Silicon (M1–M4)
-- `D2L Hub-0.1.0-mac-x64.dmg` — Intel Macs
+- `D2L Hub-0.1.1-mac-arm64.dmg` — Apple Silicon (M1–M4)
+- `D2L Hub-0.1.1-mac-x64.dmg` — Intel Macs
 
 Those DMGs are unsigned, so the person receiving one must **right-click the app
 → Open** the first time (or allow it under System Settings → Privacy & Security).
