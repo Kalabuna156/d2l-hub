@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, CalendarClock, GraduationCap, RefreshCw, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, GraduationCap, RefreshCw, Sparkles, X } from 'lucide-react';
 import { describeCourse, groupCourses, type GroupMode } from '../shared/categorize';
 import type { AppState, Course, DashboardData, Preferences } from '../shared/types';
 import { Backdrop } from './components/Backdrop';
@@ -10,14 +10,17 @@ import { ContentSpace } from './components/ContentSpace';
 import { CoursePage } from './components/CoursePage';
 import { ExamBank } from './components/ExamBank';
 import { CourseSections } from './components/CourseSections';
+import { DueSoon } from './components/DueSoon';
 import { RightRail } from './components/RightRail';
+import { SessionBar } from './components/SessionBar';
 import { SettingsDialog } from './components/SettingsDialog';
 import { Sidebar } from './components/Sidebar';
 import { StudyView } from './components/StudyView';
+import { TodaySchedule } from './components/TodaySchedule';
 import { TopBar } from './components/TopBar';
 import { fetchDashboard, fetchState, savePreferences, syncIntegrations } from './lib/api';
 import { greeting, hostLabel, isClassEvent, longDate } from './lib/format';
-import { applyPreferences, DEFAULT_PREFERENCES } from './lib/preferences';
+import { applyPreferences, DEFAULT_PREFERENCES, normalizePreferences } from './lib/preferences';
 import type { View } from './lib/ui';
 
 const VIEW_COPY: Record<View, { title: string; subtitle: string }> = {
@@ -31,41 +34,19 @@ const VIEW_COPY: Record<View, { title: string; subtitle: string }> = {
 
 function GroupToggle({ mode, onChange }: { mode: GroupMode; onChange: (mode: GroupMode) => void }) {
   return (
-    <div className="flex rounded-lg border border-white/[0.07] bg-white/[0.03] p-0.5">
+    <div className="seg">
       {(['term', 'subject'] as const).map((option) => (
         <button
           key={option}
           type="button"
           onClick={() => onChange(option)}
-          className={`focus-ring rounded-[6px] px-2.5 py-1 text-[11px] font-medium capitalize transition ${
-            mode === option
-              ? 'bg-white/[0.09] text-white shadow-sm'
-              : 'text-slate-500 hover:text-slate-300'
-          }`}
+          data-active={mode === option}
+          aria-pressed={mode === option}
+          className="seg-item focus-ring capitalize"
         >
           {option}
         </button>
       ))}
-    </div>
-  );
-}
-
-function StatTile({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof BookOpen;
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2.5">
-      <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
-        <Icon className="h-3 w-3" />
-        {label}
-      </div>
-      <p className="mt-1 font-display text-[19px] font-semibold leading-none text-white">{value}</p>
     </div>
   );
 }
@@ -85,6 +66,10 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'connections' | 'ai' | 'appearance'>('connections');
   const [preferences, setPreferences] = useState<Preferences | null>(null);
+  // Which overview arrangement this launch is using. Settings stores the
+  // choice, but it is only read once here: swapping the page out from under
+  // someone mid-session is worse than asking them to restart.
+  const [bootOverview, setBootOverview] = useState<boolean | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   const inFlight = useRef(false);
@@ -129,7 +114,12 @@ export default function App() {
     };
   }, [load]);
 
-  const prefs = preferences ?? DEFAULT_PREFERENCES;
+  const prefs = useMemo(() => normalizePreferences(preferences), [preferences]);
+  const newOverview = bootOverview ?? DEFAULT_PREFERENCES.newOverview;
+
+  useEffect(() => {
+    if (preferences && bootOverview === null) setBootOverview(normalizePreferences(preferences).newOverview);
+  }, [preferences, bootOverview]);
 
   useEffect(() => {
     applyPreferences(prefs);
@@ -162,6 +152,17 @@ export default function App() {
       void savePreferences(next).catch(() => undefined);
     }, 400);
   }, []);
+
+  // Save the pending layout choice before the window reloads, so the next
+  // launch reads what the user just picked.
+  const restart = useCallback(async () => {
+    try {
+      await savePreferences(prefs);
+    } catch {
+      // The reload still gets the choice from the debounced save above.
+    }
+    window.location.reload();
+  }, [prefs]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -305,16 +306,18 @@ export default function App() {
           showExamBank={prefs.examBank}
         />
 
-        <main className="mx-auto w-full max-w-[1280px] px-5 pb-16 pt-6 sm:px-7">
+        <main className="mx-auto w-full max-w-[1280px] px-5 pb-20 pt-6 sm:px-7 sm:pt-7">
           {dashboard?.notice && connected && view !== 'overview' && (
-            <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3">
-              <Sparkles className="h-4 w-4 shrink-0 text-amber-300" />
+            <div className="mb-5 flex flex-wrap items-center gap-3 rounded-[14px] border border-amber-400/20 bg-amber-400/[0.055] px-3.5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[9px] border border-amber-400/25 bg-amber-400/[0.1] text-amber-300">
+                <Sparkles className="h-3.5 w-3.5" strokeWidth={1.9} />
+              </span>
               <p className="flex-1 text-[12px] leading-relaxed text-amber-100/85">{dashboard.notice}</p>
               {!connected && (
                 <button
                   type="button"
                   onClick={() => setDialogOpen(true)}
-                  className="focus-ring shrink-0 rounded-lg border border-amber-400/25 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 transition hover:bg-amber-400/20"
+                  className="focus-ring shrink-0 rounded-[9px] border border-amber-400/25 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 transition-[background-color,transform] duration-150 ease-[var(--ease-out)] hover:bg-amber-400/20 active:scale-[0.985]"
                 >
                   Connect D2L
                 </button>
@@ -324,10 +327,14 @@ export default function App() {
 
           {loading && !dashboard ? (
             <div className="space-y-4">
-              <div className="panel h-[168px] animate-pulse" />
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="panel h-[176px] animate-soft-pulse" />
+              <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="panel h-[190px] animate-pulse" style={{ animationDelay: `${index * 80}ms` }} />
+                  <div
+                    key={index}
+                    className="panel h-[186px] animate-soft-pulse"
+                    style={{ animationDelay: `${index * 90}ms` }}
+                  />
                 ))}
               </div>
             </div>
@@ -335,54 +342,90 @@ export default function App() {
             <CoursePage course={selectedCourse} onBack={() => setSelectedCourse(null)} />
           ) : error && !dashboard ? (
             <div className="panel mx-auto mt-16 max-w-md px-6 py-10 text-center">
-              <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-rose-500/10 text-rose-300 ring-1 ring-inset ring-rose-400/20">
-                <AlertTriangle className="h-5 w-5" />
+              <span className="mx-auto grid h-11 w-11 place-items-center rounded-[13px] border border-rose-400/25 bg-rose-500/[0.1] text-rose-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                <AlertTriangle className="h-5 w-5" strokeWidth={1.9} />
               </span>
-              <h2 className="mt-4 font-display text-base font-semibold text-white">Can’t reach the local server</h2>
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-500">{error}</p>
-              <button
-                type="button"
-                onClick={() => void load()}
-                className="focus-ring mx-auto mt-5 flex items-center gap-2 rounded-xl bg-white/[0.08] px-3.5 py-2 text-[12.5px] font-medium text-white transition hover:bg-white/[0.13]"
-              >
+              <h2 className="mt-4 font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">
+                Can’t reach the local server
+              </h2>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-3">{error}</p>
+              <button type="button" onClick={() => void load()} className="btn focus-ring mx-auto mt-5">
                 <RefreshCw className="h-3.5 w-3.5" />
                 Try again
               </button>
             </div>
           ) : view === 'overview' ? (
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_332px]">
-              <div className="space-y-5">
-                <section className="panel relative overflow-hidden px-5 py-6 sm:px-6">
-                  <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-violet-500/[0.16] blur-3xl" />
-                  <div className="pointer-events-none absolute -bottom-24 right-24 h-48 w-48 rounded-full bg-sky-400/[0.08] blur-3xl" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 text-[10.5px] font-medium uppercase tracking-[0.22em] text-slate-500">
-                      <span className="h-1 w-1 rounded-full bg-violet-400" />
+            // Two arrangements for one screen: the new stacked overview, or the
+            // classic two-column layout with Up next and Session in a rail.
+            <div
+              className={
+                newOverview ? 'space-y-5' : 'grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_332px]'
+              }
+            >
+              <div className="min-w-0 space-y-5">
+              {/* Greeting and the three numbers worth knowing. Deliberately
+                  short: the work and the courses below are what the page is
+                  for, and both should be visible without scrolling. */}
+              <section className="panel relative overflow-hidden px-5 py-5 sm:px-6">
+                {/* The hero is the one place the accent is allowed to bloom. */}
+                <div
+                  className="pointer-events-none absolute -right-10 -top-24 h-[300px] w-[300px] rounded-full blur-[80px]"
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--color-violet-500) 26%, transparent)' }}
+                />
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(104deg, transparent 46%, color-mix(in srgb, var(--color-violet-500) 8%, transparent) 100%)',
+                  }}
+                />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <div className="relative flex flex-wrap items-center justify-between gap-x-10 gap-y-5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 text-[9.5px] font-semibold uppercase tracking-[0.2em] text-ink-4">
+                      <span className="h-1 w-1 rounded-full bg-violet-400 shadow-[0_0_8px_1px_rgba(139,125,255,0.8)]" />
                       {longDate()}
                     </div>
-                    <h2 className="mt-2 font-display text-[27px] font-semibold leading-tight tracking-tight text-white sm:text-[30px]">
+                    <h2 className="mt-2 font-display text-[24px] font-semibold leading-[1.14] tracking-[-0.028em] text-ink-1">
                       {greeting()}
                       {userName ? `, ${userName.split(' ')[0]}` : ''}
-                      <span className="text-violet-400">.</span>
+                      <span className="text-violet-400 [text-shadow:0_0_22px_rgba(139,125,255,0.55)]">.</span>
                     </h2>
-                    <p className="mt-2 max-w-[520px] text-[12.5px] leading-relaxed text-slate-400">{heroSummary}</p>
-
-                    <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-                      <StatTile icon={BookOpen} label="Courses" value={courseCount} />
-                      <StatTile icon={Sparkles} label="Subjects" value={subjectCount} />
-                      <StatTile icon={CalendarClock} label="Next 14 days" value={dueSoon} />
-                    </div>
+                    <p className="mt-1.5 max-w-[560px] text-[12px] leading-relaxed text-ink-3">{heroSummary}</p>
                   </div>
-                </section>
+
+                  <dl className="flex items-stretch">
+                    {[
+                      { label: 'Courses', value: courseCount },
+                      { label: 'Subjects', value: subjectCount },
+                      { label: 'Due in 14 days', value: dueSoon },
+                    ].map((stat) => (
+                      <div
+                        key={stat.label}
+                        className="border-l border-line px-5 first:border-l-0 first:pl-0 last:pr-0"
+                      >
+                        <dt className="text-[9px] font-semibold uppercase tracking-[0.14em] text-ink-4">
+                          {stat.label}
+                        </dt>
+                        <dd className="mt-1 font-display text-[22px] font-semibold leading-none tracking-[-0.02em] text-ink-1 tabular-nums">
+                          {stat.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              </section>
 
                 {dashboard?.notice && (connected || courses.length > 0) && (
-                  <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3">
-                    <Sparkles className="h-4 w-4 shrink-0 text-amber-300" />
+                  <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-amber-400/20 bg-amber-400/[0.055] px-3.5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[9px] border border-amber-400/25 bg-amber-400/[0.1] text-amber-300">
+                      <Sparkles className="h-3.5 w-3.5" strokeWidth={1.9} />
+                    </span>
                     <p className="flex-1 text-[12px] leading-relaxed text-amber-100/85">{dashboard.notice}</p>
                     <button
                       type="button"
                       onClick={() => setDialogOpen(true)}
-                      className="focus-ring shrink-0 rounded-lg border border-amber-400/25 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 transition hover:bg-amber-400/20"
+                      className="focus-ring shrink-0 rounded-[9px] border border-amber-400/25 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 transition-[background-color,transform] duration-150 ease-[var(--ease-out)] hover:bg-amber-400/20 active:scale-[0.985]"
                     >
                       {connected ? 'Manage session' : 'Connect D2L'}
                     </button>
@@ -399,12 +442,23 @@ export default function App() {
                     note="Your password stays in the D2L sign-in window; this app only keeps the session cookie."
                   />
                 ) : (
+                <>
+                  {/* Work beside the day: the two things the overview is opened
+                      for, both above the course grid. The classic layout puts
+                      them in the right rail instead. */}
+                  {newOverview && (
+                    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_332px]">
+                      <DueSoon events={events} connected={connected} onViewCalendar={() => changeView('calendar')} />
+                      <TodaySchedule events={events} onEdit={() => changeView('calendar')} />
+                    </div>
+                  )}
+
                 <div>
-                  <div className="mb-3 flex items-center gap-3">
-                    <h2 className="font-display text-[15px] font-semibold tracking-tight text-white">Your courses</h2>
-                    <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
-                      {filteredCourses.length}
-                    </span>
+                  <div className="mb-3 flex items-center gap-2.5">
+                    <h2 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">
+                      Your courses
+                    </h2>
+                    <span className="chip font-mono tabular-nums">{filteredCourses.length}</span>
                     <div className="ml-auto">
                       <GroupToggle mode={groupMode} onChange={changeGroupMode} />
                     </div>
@@ -412,7 +466,7 @@ export default function App() {
 
                   {activeCategory && (
                     <div className="mb-3 flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/20 bg-violet-500/[0.1] px-2.5 py-1 text-[11px] text-violet-200">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/[0.13] px-2.5 py-1 text-[11px] text-violet-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                         {categoryGroups.find((group) => group.key === activeCategory)?.label ?? activeCategory}
                         <button
                           type="button"
@@ -433,20 +487,35 @@ export default function App() {
                     onOpen={openCourse}
                   />
                 </div>
+
+                  {newOverview && (
+                    <SessionBar
+                      connected={connected}
+                      baseUrl={baseUrl}
+                      savedAt={appState?.savedAt ?? null}
+                      fetchedAt={dashboard?.fetchedAt ?? new Date().toISOString()}
+                      onManage={() => setDialogOpen(true)}
+                      onRefresh={() => void refresh()}
+                      refreshing={refreshing}
+                    />
+                  )}
+                </>
                 )}
               </div>
 
-              <RightRail
-                events={events}
-                connected={connected}
-                baseUrl={baseUrl}
-                savedAt={appState?.savedAt ?? null}
-                fetchedAt={dashboard?.fetchedAt ?? new Date().toISOString()}
-                onViewCalendar={() => changeView('calendar')}
-                onManage={() => setDialogOpen(true)}
-                onRefresh={() => void refresh()}
-                refreshing={refreshing}
-              />
+              {!newOverview && (
+                <RightRail
+                  events={events}
+                  connected={connected}
+                  baseUrl={baseUrl}
+                  savedAt={appState?.savedAt ?? null}
+                  fetchedAt={dashboard?.fetchedAt ?? new Date().toISOString()}
+                  onViewCalendar={() => changeView('calendar')}
+                  onManage={() => setDialogOpen(true)}
+                  onRefresh={() => void refresh()}
+                  refreshing={refreshing}
+                />
+              )}
             </div>
           ) : view === 'courses' ? (
             courses.length === 0 ? (
@@ -461,8 +530,8 @@ export default function App() {
             <div className="space-y-5">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <h2 className="font-display text-[19px] font-semibold tracking-tight text-white">Course library</h2>
-                  <p className="mt-1 text-[12.5px] text-slate-500">
+                  <h2 className="font-display text-[20px] font-semibold tracking-[-0.026em] text-ink-1">Course library</h2>
+                  <p className="mt-1 text-[12px] text-ink-3">
                     {filteredCourses.length} of {courses.length} enrollments · grouped by {groupMode}
                   </p>
                 </div>
@@ -558,8 +627,10 @@ export default function App() {
         open={settingsOpen}
         state={appState}
         preferences={prefs}
+        activeOverview={newOverview}
         initialTab={settingsTab}
         onPreferences={changePreferences}
+        onRestart={() => void restart()}
         onClose={() => setSettingsOpen(false)}
         onOpenD2L={() => {
           setSettingsOpen(false);

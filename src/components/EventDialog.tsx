@@ -39,7 +39,7 @@ function fromLocalInput(value: string): string | null {
 }
 
 const inputClass =
-  'focus-ring h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 text-[12.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 disabled:opacity-60';
+  'focus-ring h-9 w-full rounded-lg border border-line bg-surface-1 px-2.5 text-[12.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 disabled:opacity-60';
 
 export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
   const [title, setTitle] = useState('');
@@ -193,7 +193,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-[6px]"
       role="dialog"
       aria-modal="true"
       aria-label={heading}
@@ -201,8 +201,8 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
         if (mouse.target === mouse.currentTarget && !busy) onClose();
       }}
     >
-      <div className="animate-rise w-full max-w-[460px] overflow-hidden rounded-2xl border border-white/[0.09] bg-[var(--chrome-solid)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.95)]">
-        <div className="flex items-start gap-3 border-b border-white/[0.06] px-5 py-4">
+      <div className="pane-float animate-pop w-full max-w-[460px] overflow-hidden">
+        <div className="flex items-start gap-3 border-b border-line px-5 py-4">
           <div
             className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl shadow-lg ${
               creating
@@ -221,14 +221,14 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-[15px] font-semibold text-white">{heading}</h2>
-            <p className="mt-0.5 text-[12px] text-slate-500">{subtitle}</p>
+            <h2 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">{heading}</h2>
+            <p className="mt-0.5 text-[12px] text-ink-3">{subtitle}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/10 hover:text-slate-200"
+            className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-ink-3 transition hover:bg-white/10 hover:text-ink-1"
           >
             <X className="h-4 w-4" />
           </button>
@@ -236,7 +236,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
 
         <div className="px-5 py-4">
           <label className="block">
-            <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">Event name</span>
+            <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">Event name</span>
             <input
               value={title}
               onChange={(change) => setTitle(change.target.value)}
@@ -248,7 +248,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
           </label>
 
           <label className="mt-3 block">
-            <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">Room or place</span>
+            <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">Room or place</span>
             <input
               value={room}
               onChange={(change) => setRoom(change.target.value)}
@@ -261,7 +261,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
 
           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
             <label className="block">
-              <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">Starts</span>
+              <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">Starts</span>
               <input
                 type="datetime-local"
                 value={start}
@@ -271,7 +271,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
               />
             </label>
             <label className="block">
-              <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">Ends</span>
+              <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">Ends</span>
               <input
                 type="datetime-local"
                 value={end}
@@ -282,7 +282,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
             </label>
           </div>
 
-          <p className="mt-3 text-[11px] leading-relaxed text-slate-600">
+          <p className="mt-3 text-[11px] leading-relaxed text-ink-4">
             {local || creating
               ? 'Events added here are stored in this app. Add to Google Calendar opens a prefilled Google page where you press Save — nothing is sent automatically.'
               : 'Changes are stored in this app and applied after every sync — Google Calendar itself is not modified, so a feed refresh will not undo them.'}
@@ -296,12 +296,12 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.06] px-5 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-t border-line px-5 py-3">
           <button
             type="button"
             onClick={() => void submit()}
             disabled={busy}
-            className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-violet-500 to-indigo-600 px-3.5 text-[12px] font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:from-violet-400 hover:to-indigo-500 disabled:opacity-50"
+            className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-violet-400)_78%,#0b0d16),color-mix(in_srgb,var(--color-violet-600)_92%,#0b0d16))] px-3.5 text-[12px] font-semibold text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-violet-300)_34%,transparent),0_12px_28px_-14px_color-mix(in_srgb,var(--color-violet-500)_95%,transparent),inset_0_1px_0_rgba(255,255,255,0.22)] transition hover:brightness-[1.12] disabled:opacity-50"
           >
             {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {creating ? 'Add event' : event?.hidden ? 'Show this class again' : 'Save changes'}
@@ -312,7 +312,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
               type="button"
               onClick={() => void handoff()}
               disabled={busy}
-              className="focus-ring flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[11.5px] text-slate-300 transition hover:border-sky-400/30 hover:bg-sky-500/[0.08] hover:text-sky-100 disabled:opacity-60"
+              className="focus-ring flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[11.5px] text-ink-2 transition hover:border-sky-400/30 hover:bg-sky-500/[0.08] hover:text-sky-100 disabled:opacity-60"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Add to Google Calendar
@@ -324,7 +324,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
               type="button"
               onClick={() => void run(() => deleteLocalEvent(event.id))}
               disabled={busy}
-              className="focus-ring flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[11.5px] text-slate-300 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
+              className="focus-ring flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[11.5px] text-ink-2 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Delete event
@@ -335,7 +335,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
                 type="button"
                 onClick={onClose}
                 disabled={busy}
-                className="focus-ring h-9 rounded-lg border border-white/10 px-3 text-[11.5px] text-slate-300 transition hover:border-white/20 hover:bg-white/[0.06] disabled:opacity-60"
+                className="focus-ring h-9 rounded-lg border border-white/10 px-3 text-[11.5px] text-ink-2 transition hover:border-white/20 hover:bg-surface-2 disabled:opacity-60"
               >
                 Keep hidden
               </button>
@@ -344,7 +344,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
                 type="button"
                 onClick={() => void run(() => saveEventOverride(event.id, { hidden: true }))}
                 disabled={busy}
-                className="focus-ring flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[11.5px] text-slate-300 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
+                className="focus-ring flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[11.5px] text-ink-2 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
               >
                 <EyeOff className="h-3.5 w-3.5" />
                 Hide class
@@ -355,7 +355,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
               type="button"
               onClick={onClose}
               disabled={busy}
-              className="focus-ring h-9 rounded-lg border border-white/10 px-3 text-[11.5px] text-slate-300 transition hover:border-white/20 hover:bg-white/[0.06] disabled:opacity-60"
+              className="focus-ring h-9 rounded-lg border border-white/10 px-3 text-[11.5px] text-ink-2 transition hover:border-white/20 hover:bg-surface-2 disabled:opacity-60"
             >
               Cancel
             </button>
@@ -366,7 +366,7 @@ export function EventDialog({ target, onClose, onSaved }: EventDialogProps) {
               type="button"
               onClick={() => void run(() => resetEventOverride(event.id))}
               disabled={busy}
-              className="focus-ring ml-auto flex h-9 items-center gap-1.5 rounded-lg px-2 text-[11px] text-slate-500 transition hover:text-slate-200 disabled:opacity-60"
+              className="focus-ring ml-auto flex h-9 items-center gap-1.5 rounded-lg px-2 text-[11px] text-ink-3 transition hover:text-ink-1 disabled:opacity-60"
             >
               <RotateCcw className="h-3 w-3" />
               Reset to Google&apos;s version

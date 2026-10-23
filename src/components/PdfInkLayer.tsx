@@ -74,7 +74,16 @@ export function PdfInkLayer({
 
   const render = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !viewport) return;
+    if (!canvas) return;
+    // The page has scrolled out of view and given up its space: release this
+    // bitmap too, and draw it again when the page comes back.
+    if (!viewport) {
+      if (canvas.width > 0 || canvas.height > 0) {
+        canvas.width = 0;
+        canvas.height = 0;
+      }
+      return;
+    }
     const ratio = Math.min(window.devicePixelRatio || 1, 2);
     const width = Math.max(1, Math.floor(viewport.width));
     const height = Math.max(1, Math.floor(viewport.height));

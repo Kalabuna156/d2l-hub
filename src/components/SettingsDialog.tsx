@@ -46,7 +46,10 @@ interface SettingsDialogProps {
   open: boolean;
   state: AppState | null;
   preferences: Preferences;
+  /** The layout this launch is showing; the stored choice only lands on restart. */
+  activeOverview: boolean;
   onPreferences: (next: Preferences) => void;
+  onRestart: () => void;
   onClose: () => void;
   onOpenD2L: () => void;
   onSynced: () => void;
@@ -61,7 +64,7 @@ function StatusPill({ connection }: { connection: IntegrationConnection | undefi
       className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
         connected
           ? 'bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/20'
-          : 'bg-white/[0.05] text-slate-500 ring-1 ring-inset ring-white/10'
+          : 'bg-surface-2 text-ink-3 ring-1 ring-inset ring-white/10'
       }`}
     >
       {connected ? 'Connected' : 'Not connected'}
@@ -82,7 +85,9 @@ export function SettingsDialog({
   open,
   state,
   preferences,
+  activeOverview,
   onPreferences,
+  onRestart,
   onClose,
   onOpenD2L,
   onSynced,
@@ -244,6 +249,7 @@ export function SettingsDialog({
   };
 
   const update = (patch: Partial<Preferences>) => onPreferences({ ...preferences, ...patch });
+  const overviewPending = preferences.newOverview !== activeOverview;
 
   const saveAi = async (runTest: boolean) => {
     setAiBusy(true);
@@ -326,7 +332,7 @@ export function SettingsDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-[6px]"
       role="dialog"
       aria-modal="true"
       aria-label="Settings"
@@ -334,56 +340,53 @@ export function SettingsDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="animate-rise flex max-h-[88vh] w-full max-w-[620px] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-[var(--chrome-solid)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.95)]">
-        <div className="flex items-start gap-3 border-b border-white/[0.06] px-5 py-4">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-700 shadow-lg shadow-violet-950/60">
-            <Settings2 className="h-4 w-4 text-white" />
+      <div className="pane-float animate-pop flex max-h-[88vh] w-full max-w-[620px] flex-col overflow-hidden">
+        <div className="flex items-start gap-3 border-b border-line px-5 py-4">
+          <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-[11px] bg-gradient-to-br from-violet-400 via-violet-600 to-indigo-700 shadow-[0_10px_24px_-12px_rgba(109,94,252,0.9),inset_0_1px_0_rgba(255,255,255,0.32)]">
+            <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.4),transparent_46%)] opacity-70" />
+            <Settings2 className="relative h-4 w-4 text-white" strokeWidth={2} />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-[15px] font-semibold text-white">Settings</h2>
-            <p className="mt-0.5 text-[12px] text-slate-500">Connections and appearance, saved on this computer.</p>
+            <h2 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">Settings</h2>
+            <p className="mt-0.5 text-[12px] text-ink-3">Connections and appearance, saved on this computer.</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close settings"
-            className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/10 hover:text-slate-200"
+            className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-ink-3 transition hover:bg-white/10 hover:text-ink-1"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="flex gap-1 border-b border-white/[0.06] px-4 py-2">
-          {(
-            [
-              { id: 'connections', label: 'Connections', icon: Plug },
-              { id: 'ai', label: 'AI', icon: Brain },
-              { id: 'appearance', label: 'Appearance', icon: Palette },
-            ] as const
-          ).map((item) => {
-            const Icon = item.icon;
-            const active = tab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setTab(item.id)}
-                className={`focus-ring flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition ${
-                  active ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {item.label}
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 border-b border-line px-4 py-2">
+          <div className="seg">
+            {(
+              [
+                { id: 'connections', label: 'Connections', icon: Plug },
+                { id: 'ai', label: 'AI', icon: Brain },
+                { id: 'appearance', label: 'Appearance', icon: Palette },
+              ] as const
+            ).map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setTab(item.id)}
+                  data-active={tab === item.id}
+                  aria-pressed={tab === item.id}
+                  className="seg-item focus-ring"
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
           {(googleStatus?.connected || notionStatus?.connected) && (
-            <button
-              type="button"
-              onClick={syncNow}
-              disabled={syncing}
-              className="focus-ring ml-auto flex items-center gap-1.5 rounded-lg border border-white/[0.08] px-2.5 py-1.5 text-[11.5px] text-slate-400 transition hover:border-white/15 hover:text-slate-200 disabled:opacity-60"
-            >
+            <button type="button" onClick={syncNow} disabled={syncing} className="btn btn-sm focus-ring ml-auto">
               <RefreshCw className={`h-3 w-3 ${syncing ? 'animate-spin' : ''}`} />
               Sync now
             </button>
@@ -395,17 +398,17 @@ export function SettingsDialog({
 
           {tab === 'connections' ? (
             <div className="space-y-3">
-              <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+              <section className="rounded-xl border border-line bg-surface-1 p-4">
                 <div className="flex items-center gap-2">
                   <span className="grid h-7 w-7 place-items-center rounded-lg bg-violet-500/[0.12] text-violet-300 ring-1 ring-inset ring-violet-400/20">
                     <ExternalLink className="h-3.5 w-3.5" />
                   </span>
-                  <h3 className="text-[13px] font-semibold text-slate-100">D2L / Brightspace</h3>
+                  <h3 className="text-[13px] font-semibold text-ink-1">D2L / Brightspace</h3>
                   <span className="ml-auto">
                     <StatusPill connection={{ connected: Boolean(state?.connected), label: null, lastSync: null, error: null, count: 0 }} />
                   </span>
                 </div>
-                <p className="mt-2 text-[11.5px] leading-relaxed text-slate-500">
+                <p className="mt-2 text-[11.5px] leading-relaxed text-ink-3">
                   {state?.connected
                     ? `Signed in as ${state.userName ?? 'your account'} on ${state.baseUrl.replace(/^https?:\/\//, '')}.`
                     : 'Sign in through your school once; the dashboard keeps the session.'}
@@ -413,18 +416,18 @@ export function SettingsDialog({
                 <button
                   type="button"
                   onClick={onOpenD2L}
-                  className="focus-ring mt-3 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-[11.5px] font-medium text-slate-200 transition hover:border-white/15 hover:bg-white/[0.08]"
+                  className="focus-ring mt-3 rounded-lg border border-line bg-surface-1 px-3 py-1.5 text-[11.5px] font-medium text-ink-1 transition hover:border-white/15 hover:bg-surface-2"
                 >
                   {state?.connected ? 'Manage D2L session' : 'Connect D2L'}
                 </button>
               </section>
 
-              <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+              <section className="rounded-xl border border-line bg-surface-1 p-4">
                 <div className="flex items-center gap-2">
                   <span className="grid h-7 w-7 place-items-center rounded-lg bg-sky-500/[0.12] text-sky-300 ring-1 ring-inset ring-sky-400/20">
                     <CalendarDays className="h-3.5 w-3.5" />
                   </span>
-                  <h3 className="text-[13px] font-semibold text-slate-100">Google Calendar</h3>
+                  <h3 className="text-[13px] font-semibold text-ink-1">Google Calendar</h3>
                   <span className="ml-auto">
                     <StatusPill connection={googleStatus} />
                   </span>
@@ -432,8 +435,8 @@ export function SettingsDialog({
 
                 {googleStatus?.connected ? (
                   <>
-                    <p className="mt-2 text-[11.5px] leading-relaxed text-slate-400">
-                      Reading <span className="text-slate-200">{googleStatus.label ?? 'your calendar'}</span>
+                    <p className="mt-2 text-[11.5px] leading-relaxed text-ink-2">
+                      Reading <span className="text-ink-1">{googleStatus.label ?? 'your calendar'}</span>
                       {googleStatus.count > 0 ? ` · ${googleStatus.count} upcoming` : ''}
                       {googleStatus.lastSync ? ` · synced ${syncTime(googleStatus.lastSync)}` : ''}
                     </p>
@@ -443,7 +446,7 @@ export function SettingsDialog({
                         type="button"
                         onClick={disconnectGoogle}
                         disabled={googleBusy}
-                        className="focus-ring rounded-lg border border-white/10 px-3 py-1.5 text-[11.5px] text-slate-300 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
+                        className="focus-ring rounded-lg border border-white/10 px-3 py-1.5 text-[11.5px] text-ink-2 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
                       >
                         Remove calendar
                       </button>
@@ -451,7 +454,7 @@ export function SettingsDialog({
                   </>
                 ) : (
                   <>
-                    <p className="mt-2 text-[11.5px] leading-relaxed text-slate-500">
+                    <p className="mt-2 text-[11.5px] leading-relaxed text-ink-3">
                       Google shares a calendar read-only through a private address. Copy the one belonging to your
                       school calendar and paste it below — about a minute of work, no Google Cloud project.
                     </p>
@@ -460,7 +463,7 @@ export function SettingsDialog({
                       href="https://calendar.google.com/calendar/r/settings"
                       target="_blank"
                       rel="noreferrer"
-                      className="focus-ring mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5 text-[11.5px] font-medium text-slate-200 transition hover:border-white/15 hover:bg-white/[0.08]"
+                      className="focus-ring mt-3 inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2.5 py-1.5 text-[11.5px] font-medium text-ink-1 transition hover:border-white/15 hover:bg-surface-2"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Open Google Calendar settings
@@ -473,8 +476,8 @@ export function SettingsDialog({
                         'Copy “Secret address in iCal format” — the link ending in basic.ics.',
                         'Paste it in the box below and press Connect.',
                       ].map((step, index) => (
-                        <li key={step} className="flex gap-2 text-[11.5px] leading-relaxed text-slate-500">
-                          <span className="mt-px grid h-4 w-4 shrink-0 place-items-center rounded-full bg-white/[0.06] text-[9.5px] font-semibold text-slate-400">
+                        <li key={step} className="flex gap-2 text-[11.5px] leading-relaxed text-ink-3">
+                          <span className="mt-px grid h-4 w-4 shrink-0 place-items-center rounded-full bg-surface-2 text-[9.5px] font-semibold text-ink-2">
                             {index + 1}
                           </span>
                           <span>{step}</span>
@@ -483,7 +486,7 @@ export function SettingsDialog({
                     </ol>
 
                     <div className="mt-3">
-                      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">
                         Secret iCal address
                       </span>
                       <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
@@ -497,19 +500,19 @@ export function SettingsDialog({
                           aria-label="Secret iCal address"
                           placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"
                           spellCheck={false}
-                          className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 font-mono text-[11.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 disabled:opacity-60"
+                          className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface-1 px-2.5 font-mono text-[11.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 disabled:opacity-60"
                         />
                         <button
                           type="button"
                           onClick={connectGoogle}
                           disabled={googleBusy || googleUrl.trim().length === 0}
-                          className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-violet-500 to-indigo-600 px-3 text-[12px] font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:from-violet-400 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-violet-400)_78%,#0b0d16),color-mix(in_srgb,var(--color-violet-600)_92%,#0b0d16))] px-3 text-[12px] font-semibold text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-violet-300)_34%,transparent),0_12px_28px_-14px_color-mix(in_srgb,var(--color-violet-500)_95%,transparent),inset_0_1px_0_rgba(255,255,255,0.22)] transition hover:brightness-[1.12] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {googleBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                           Connect
                         </button>
                       </div>
-                      <p className="mt-1.5 text-[10.5px] leading-relaxed text-slate-600">
+                      <p className="mt-1.5 text-[10.5px] leading-relaxed text-ink-4">
                         The address is a secret — anyone with it can read that calendar. It is stored only on this
                         computer, and connecting only ever reads it.
                       </p>
@@ -519,12 +522,12 @@ export function SettingsDialog({
                 )}
               </section>
 
-              <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+              <section className="rounded-xl border border-line bg-surface-1 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-slate-400/10 text-slate-200 ring-1 ring-inset ring-white/15">
+                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-slate-400/10 text-ink-1 ring-1 ring-inset ring-white/15">
                     <Database className="h-3.5 w-3.5" />
                   </span>
-                  <h3 className="text-[13px] font-semibold text-slate-100">Notion</h3>
+                  <h3 className="text-[13px] font-semibold text-ink-1">Notion</h3>
                   <span className="ml-auto">
                     <StatusPill connection={notionStatus} />
                   </span>
@@ -532,8 +535,8 @@ export function SettingsDialog({
 
                 {notionStatus?.connected ? (
                   <>
-                    <p className="mt-2 text-[11.5px] leading-relaxed text-slate-400">
-                      Reading <span className="text-slate-200">{notionStatus.label ?? 'your database'}</span>
+                    <p className="mt-2 text-[11.5px] leading-relaxed text-ink-2">
+                      Reading <span className="text-ink-1">{notionStatus.label ?? 'your database'}</span>
                       {notionStatus.count > 0 ? ` · ${notionStatus.count} dated entries` : ''}
                       {notionStatus.lastSync ? ` · synced ${syncTime(notionStatus.lastSync)}` : ''}
                     </p>
@@ -542,14 +545,14 @@ export function SettingsDialog({
                       type="button"
                       onClick={disconnectNotion}
                       disabled={notionBusy}
-                      className="focus-ring mt-3 rounded-lg border border-white/10 px-3 py-1.5 text-[11.5px] text-slate-300 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
+                      className="focus-ring mt-3 rounded-lg border border-white/10 px-3 py-1.5 text-[11.5px] text-ink-2 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
                     >
                       Remove database
                     </button>
                   </>
                 ) : (
                   <>
-                    <p className="mt-2 text-[11.5px] leading-relaxed text-slate-500">
+                    <p className="mt-2 text-[11.5px] leading-relaxed text-ink-3">
                       Create an integration at{' '}
                       <a
                         href="https://www.notion.so/my-integrations"
@@ -560,7 +563,7 @@ export function SettingsDialog({
                         notion.so/my-integrations
                       </a>
                       , copy its Internal Integration Secret, then in Notion open your deadlines database →{' '}
-                      <span className="text-slate-300">⋯ → Connections → add your integration</span>.
+                      <span className="text-ink-2">⋯ → Connections → add your integration</span>.
                     </p>
                     <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                       <input
@@ -570,13 +573,13 @@ export function SettingsDialog({
                         type="password"
                         placeholder="ntn_… integration secret"
                         spellCheck={false}
-                        className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 font-mono text-[11.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 disabled:opacity-60"
+                        className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface-1 px-2.5 font-mono text-[11.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 disabled:opacity-60"
                       />
                       <button
                         type="button"
                         onClick={findDatabases}
                         disabled={notionBusy || notionToken.trim().length === 0}
-                        className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.05] px-3 text-[12px] font-medium text-slate-200 transition hover:border-white/15 hover:bg-white/[0.09] disabled:opacity-50"
+                        className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg border border-line bg-surface-2 px-3 text-[12px] font-medium text-ink-1 transition hover:border-white/15 hover:bg-surface-2 disabled:opacity-50"
                       >
                         {notionBusy && databases.length === 0 ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -599,7 +602,7 @@ export function SettingsDialog({
                           value={selectedDb}
                           onChange={(event) => setSelectedDb(event.target.value)}
                           aria-label="Notion database"
-                          className="focus-ring h-9 w-full rounded-lg border border-white/[0.08] bg-[var(--chrome-solid)] px-2.5 text-[12px] text-slate-200"
+                          className="focus-ring field h-9"
                         >
                           {databases.map((database) => (
                             <option key={database.id} value={database.id}>
@@ -608,7 +611,7 @@ export function SettingsDialog({
                             </option>
                           ))}
                         </select>
-                        <p className="text-[11px] leading-relaxed text-slate-500">
+                        <p className="text-[11px] leading-relaxed text-ink-3">
                           {chosenDb?.dateProperty
                             ? `Due dates come from the “${chosenDb.dateProperty}” property.`
                             : 'Add a Date property called “Due” to that database, then search again.'}
@@ -617,7 +620,7 @@ export function SettingsDialog({
                           type="button"
                           onClick={connectNotion}
                           disabled={notionBusy || !chosenDb?.dateProperty}
-                          className="focus-ring flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-violet-500 to-indigo-600 text-[12px] font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:from-violet-400 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="focus-ring flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-violet-400)_78%,#0b0d16),color-mix(in_srgb,var(--color-violet-600)_92%,#0b0d16))] text-[12px] font-semibold text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-violet-300)_34%,transparent),0_12px_28px_-14px_color-mix(in_srgb,var(--color-violet-500)_95%,transparent),inset_0_1px_0_rgba(255,255,255,0.22)] transition hover:brightness-[1.12] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {notionBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                           Use this database
@@ -630,38 +633,38 @@ export function SettingsDialog({
                 )}
               </section>
 
-              <p className="px-1 text-[11px] leading-relaxed text-slate-600">
+              <p className="px-1 text-[11px] leading-relaxed text-ink-4">
                 Calendar addresses and Notion tokens are stored only on this computer, never uploaded. Synced items are
-                merged into Up next and the 14-day stat, and link back to the original entry.
+                merged into Due soon and the 14-day stat, and link back to the original entry.
               </p>
             </div>
           ) : tab === 'ai' ? (
             <div className="space-y-4">
-              <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+              <section className="rounded-xl border border-line bg-surface-1 p-4">
                 <div className="flex items-center gap-2">
                   <span className="grid h-7 w-7 place-items-center rounded-lg bg-violet-500/[0.12] text-violet-300 ring-1 ring-inset ring-violet-400/20">
                     <Brain className="h-3.5 w-3.5" />
                   </span>
-                  <h3 className="text-[13px] font-semibold text-slate-100">Your own AI</h3>
+                  <h3 className="text-[13px] font-semibold text-ink-1">Your own AI</h3>
                   <span className="ml-auto">
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
                         state?.ai?.configured
                           ? 'bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/20'
-                          : 'bg-white/[0.05] text-slate-500 ring-1 ring-inset ring-white/10'
+                          : 'bg-surface-2 text-ink-3 ring-1 ring-inset ring-white/10'
                       }`}
                     >
                       {state?.ai?.configured ? 'Key saved' : 'No key yet'}
                     </span>
                   </span>
                 </div>
-                <p className="mt-2 text-[11.5px] leading-relaxed text-slate-500">
+                <p className="mt-2 text-[11.5px] leading-relaxed text-ink-3">
                   Auto-import and Study call the provider directly with this key. The key is stored in this
                   computer's app data and is never sent anywhere else.
                 </p>
 
                 <label className="mt-3 block">
-                  <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">
                     Provider
                   </span>
                   <select
@@ -672,7 +675,7 @@ export function SettingsDialog({
                       setAiError(null);
                     }}
                     disabled={aiBusy}
-                    className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-white/[0.08] bg-[var(--chrome-solid)] px-2.5 text-[12px] text-slate-200 disabled:opacity-60"
+                    className="focus-ring mt-1.5 field h-9 disabled:opacity-60"
                   >
                     <option value="gemini">Google Gemini</option>
                     <option value="openai">OpenAI</option>
@@ -683,7 +686,7 @@ export function SettingsDialog({
 
                 {aiProvider === 'custom' && (
                   <label className="mt-3 block">
-                    <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">
                       Endpoint URL
                     </span>
                     <input
@@ -692,9 +695,9 @@ export function SettingsDialog({
                       disabled={aiBusy}
                       placeholder="https://example.com/v1"
                       spellCheck={false}
-                      className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 font-mono text-[11.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 disabled:opacity-60"
+                      className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-line bg-surface-1 px-2.5 font-mono text-[11.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 disabled:opacity-60"
                     />
-                    <span className="mt-1 block text-[10.5px] leading-relaxed text-slate-600">
+                    <span className="mt-1 block text-[10.5px] leading-relaxed text-ink-4">
                       Anything that speaks the OpenAI chat-completions API: a gateway, a local model server, or
                       another vendor's compatible endpoint. http:// is allowed for localhost only.
                     </span>
@@ -702,7 +705,7 @@ export function SettingsDialog({
                 )}
 
                 <label className="mt-3 block">
-                  <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">
                     Model
                   </span>
                   <input
@@ -711,9 +714,9 @@ export function SettingsDialog({
                     disabled={aiBusy}
                     placeholder={aiProvider === 'gemini' ? 'gemini-3.8-flash' : aiProvider === 'anthropic' ? 'claude-sonnet-4-5' : 'gpt-4o-mini'}
                     spellCheck={false}
-                    className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 font-mono text-[11.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 disabled:opacity-60"
+                    className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-line bg-surface-1 px-2.5 font-mono text-[11.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 disabled:opacity-60"
                   />
-                  <span className="mt-1 block text-[10.5px] leading-relaxed text-slate-600">
+                  <span className="mt-1 block text-[10.5px] leading-relaxed text-ink-4">
                     Leave blank for the default. A larger model gives better study plans but costs more.
                   </span>
                 </label>
@@ -721,7 +724,7 @@ export function SettingsDialog({
                 <div className="mt-3 block">
                   <label
                     htmlFor="ai-api-key"
-                    className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500"
+                    className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3"
                   >
                     API key
                   </label>
@@ -739,13 +742,13 @@ export function SettingsDialog({
                           : 'Paste the key from your provider'
                       }
                       spellCheck={false}
-                      className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 font-mono text-[11.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 disabled:opacity-60"
+                      className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface-1 px-2.5 font-mono text-[11.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 disabled:opacity-60"
                     />
                     <button
                       type="button"
                       onClick={() => void saveAi(false)}
                       disabled={aiBusy}
-                      className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-violet-500 to-indigo-600 px-3 text-[12px] font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:from-violet-400 hover:to-indigo-500 disabled:opacity-50"
+                      className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-violet-400)_78%,#0b0d16),color-mix(in_srgb,var(--color-violet-600)_92%,#0b0d16))] px-3 text-[12px] font-semibold text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-violet-300)_34%,transparent),0_12px_28px_-14px_color-mix(in_srgb,var(--color-violet-500)_95%,transparent),inset_0_1px_0_rgba(255,255,255,0.22)] transition hover:brightness-[1.12] disabled:opacity-50"
                     >
                       {aiBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                       Save
@@ -758,7 +761,7 @@ export function SettingsDialog({
                     type="button"
                     onClick={() => void saveAi(true)}
                     disabled={aiBusy || (!state?.ai?.configured && !aiKey.trim())}
-                    className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.06] px-2.5 py-1.5 text-[11.5px] font-medium text-slate-200 transition hover:border-white/20 hover:text-white disabled:opacity-40"
+                    className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface-2 px-2.5 py-1.5 text-[11.5px] font-medium text-ink-1 transition hover:border-white/20 hover:text-white disabled:opacity-40"
                   >
                     <RefreshCw className={`h-3 w-3 ${aiBusy ? 'animate-spin' : ''}`} />
                     Save &amp; test
@@ -768,7 +771,7 @@ export function SettingsDialog({
                       type="button"
                       onClick={() => void forgetKey()}
                       disabled={aiBusy}
-                      className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11.5px] text-slate-400 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-40"
+                      className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11.5px] text-ink-2 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-40"
                     >
                       <KeyRound className="h-3 w-3" />
                       Forget key
@@ -804,16 +807,16 @@ export function SettingsDialog({
 
               <section
                 className={`rounded-xl border p-4 ${
-                  aiAllow ? 'border-amber-400/25 bg-amber-400/[0.06]' : 'border-white/[0.07] bg-white/[0.02]'
+                  aiAllow ? 'border-amber-400/25 bg-amber-400/[0.06]' : 'border-line bg-surface-1'
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="flex items-center gap-1.5 text-[12.5px] font-medium text-slate-100">
-                      <ShieldAlert className={`h-3.5 w-3.5 ${aiAllow ? 'text-amber-300' : 'text-slate-500'}`} />
+                    <p className="flex items-center gap-1.5 text-[12.5px] font-medium text-ink-1">
+                      <ShieldAlert className={`h-3.5 w-3.5 ${aiAllow ? 'text-amber-300' : 'text-ink-3'}`} />
                       Let AI read course files
                     </p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                    <p className="mt-1 text-[11px] leading-relaxed text-ink-3">
                       When this is on, the text of the lecture PDFs, Word documents and PowerPoint slides you
                       have for a course is sent to your AI provider with a study request. That content leaves
                       this computer and is handled under that provider's terms. Leave it off and only file
@@ -827,7 +830,7 @@ export function SettingsDialog({
                     aria-label="Let the AI read course files"
                     onClick={() => setAiAllow((value) => !value)}
                     className={`focus-ring relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition ${
-                      aiAllow ? 'border-amber-400/40 bg-amber-400/70' : 'border-white/10 bg-white/[0.08]'
+                      aiAllow ? 'border-amber-400/40 bg-amber-400/70' : 'border-white/10 bg-surface-2'
                     }`}
                   >
                     <span
@@ -844,7 +847,7 @@ export function SettingsDialog({
                 )}
               </section>
 
-              <p className="px-1 text-[11px] leading-relaxed text-slate-600">
+              <p className="px-1 text-[11px] leading-relaxed text-ink-4">
                 Outline text is also sent when you press Auto-import or build a study plan — that is how the AI
                 reads the dates and chapters. Study also sends the course announcements that mention quiz or
                 exam coverage, so the plan follows what your instructor says is covered. Calls use your own
@@ -855,7 +858,54 @@ export function SettingsDialog({
           ) : (
             <div className="space-y-5">
               <section>
-                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-500">Accent</h3>
+                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">Overview</h3>
+                <div className="mt-2.5 flex items-start justify-between gap-4 rounded-xl border border-line bg-surface-1 px-3 py-3">
+                  <div className="min-w-0">
+                    <p className="text-[12.5px] font-medium text-ink-1">New overview</p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-ink-3">
+                      Due work and today’s classes above a full-width course grid, with the session bar underneath.
+                      Turn it off for the classic layout, which keeps Up next and Session in a rail on the right.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={preferences.newOverview}
+                    aria-label="Use the new overview"
+                    onClick={() => update({ newOverview: !preferences.newOverview })}
+                    className={`focus-ring relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition ${
+                      preferences.newOverview
+                        ? 'border-violet-400/40 bg-violet-500/70'
+                        : 'border-white/10 bg-surface-2'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-3.5 w-3.5 rounded-full bg-white shadow transition-all ${
+                        preferences.newOverview ? 'left-[18px]' : 'left-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {overviewPending && (
+                  <div className="mt-2 flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.07] px-3 py-2.5">
+                    <p className="flex-1 text-[11.5px] leading-relaxed text-amber-100/90">
+                      Restart to switch to the {preferences.newOverview ? 'new' : 'classic'} overview. The layout is
+                      chosen when the app opens.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={onRestart}
+                      className="focus-ring shrink-0 rounded-lg border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 transition hover:bg-amber-400/20"
+                    >
+                      Restart now
+                    </button>
+                  </div>
+                )}
+              </section>
+
+              <section>
+                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">Accent</h3>
                 <div className="mt-2.5 flex flex-wrap gap-2">
                   {ACCENTS.map((accent) => {
                     const active = preferences.accent === accent.id;
@@ -867,8 +917,8 @@ export function SettingsDialog({
                         aria-pressed={active}
                         className={`focus-ring flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-[12px] transition ${
                           active
-                            ? 'border-white/20 bg-white/[0.07] text-white'
-                            : 'border-white/[0.07] bg-white/[0.02] text-slate-400 hover:border-white/15 hover:text-slate-200'
+                            ? 'border-white/20 bg-surface-2 text-white'
+                            : 'border-line bg-surface-1 text-ink-2 hover:border-white/15 hover:text-ink-1'
                         }`}
                       >
                         <span className="h-3.5 w-3.5 rounded-full ring-1 ring-inset ring-white/25" style={{ backgroundColor: accent.swatch }} />
@@ -880,7 +930,7 @@ export function SettingsDialog({
               </section>
 
               <section>
-                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-500">Background</h3>
+                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">Background</h3>
                 <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
                   {BACKDROPS.map((backdrop) => {
                     const active = preferences.backdrop === backdrop.id;
@@ -893,7 +943,7 @@ export function SettingsDialog({
                         className={`focus-ring flex items-center gap-3 rounded-xl border p-2 text-left transition ${
                           active
                             ? 'border-violet-400/40 bg-violet-500/[0.08]'
-                            : 'border-white/[0.07] bg-white/[0.02] hover:border-white/15'
+                            : 'border-line bg-surface-1 hover:border-white/15'
                         }`}
                       >
                         <span
@@ -901,8 +951,8 @@ export function SettingsDialog({
                           style={{ background: backdrop.preview }}
                         />
                         <span className="min-w-0">
-                          <span className="block text-[12.5px] font-medium text-slate-100">{backdrop.label}</span>
-                          <span className="block truncate text-[11px] text-slate-500">{backdrop.hint}</span>
+                          <span className="block text-[12.5px] font-medium text-ink-1">{backdrop.label}</span>
+                          <span className="block truncate text-[11px] text-ink-3">{backdrop.hint}</span>
                         </span>
                         {active && <Check className="ml-auto h-3.5 w-3.5 shrink-0 text-violet-300" />}
                       </button>
@@ -912,8 +962,8 @@ export function SettingsDialog({
               </section>
 
               <section>
-                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-500">Your own image</h3>
-                <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">Your own image</h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-ink-3">
                   Paste a direct image link (https://…jpg or .png). It sits behind a dimming layer so text stays readable.
                 </p>
                 <div className="mt-2 flex gap-2">
@@ -922,13 +972,13 @@ export function SettingsDialog({
                     onChange={(event) => update({ backgroundImage: event.target.value.trim() || null })}
                     placeholder="https://example.com/wallpaper.jpg"
                     spellCheck={false}
-                    className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 font-mono text-[11.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40"
+                    className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface-1 px-2.5 font-mono text-[11.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40"
                   />
                   {preferences.backgroundImage && (
                     <button
                       type="button"
                       onClick={() => update({ backgroundImage: null })}
-                      className="focus-ring rounded-lg border border-white/10 px-3 text-[11.5px] text-slate-300 transition hover:border-rose-400/30 hover:text-rose-200"
+                      className="focus-ring rounded-lg border border-white/10 px-3 text-[11.5px] text-ink-2 transition hover:border-rose-400/30 hover:text-rose-200"
                     >
                       Clear
                     </button>
@@ -937,7 +987,7 @@ export function SettingsDialog({
 
                 {preferences.backgroundImage && (
                   <label className="mt-3 flex items-center gap-3">
-                    <span className="text-[11.5px] text-slate-500">Image strength</span>
+                    <span className="text-[11.5px] text-ink-3">Image strength</span>
                     <input
                       type="range"
                       min={10}
@@ -946,17 +996,17 @@ export function SettingsDialog({
                       onChange={(event) => update({ imageDim: Number(event.target.value) })}
                       className="accent-violet-500 h-1.5 flex-1 cursor-pointer"
                     />
-                    <span className="w-9 text-right text-[11.5px] text-slate-400">{preferences.imageDim}%</span>
+                    <span className="w-9 text-right text-[11.5px] text-ink-2">{preferences.imageDim}%</span>
                   </label>
                 )}
               </section>
 
               <section>
-                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-500">Features</h3>
-                <div className="mt-2.5 flex items-start justify-between gap-4 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-3">
+                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">Features</h3>
+                <div className="mt-2.5 flex items-start justify-between gap-4 rounded-xl border border-line bg-surface-1 px-3 py-3">
                   <div className="min-w-0">
-                    <p className="text-[12.5px] font-medium text-slate-100">MUES exam bank</p>
-                    <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">
+                    <p className="text-[12.5px] font-medium text-ink-1">MUES exam bank</p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-ink-3">
                       Browse the public engineering exam archive inside the app. Engineering students at TMU can use
                       it without an account; turn it off to hide the section.
                     </p>
@@ -970,7 +1020,7 @@ export function SettingsDialog({
                     className={`focus-ring relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition ${
                       preferences.examBank
                         ? 'border-violet-400/40 bg-violet-500/70'
-                        : 'border-white/10 bg-white/[0.08]'
+                        : 'border-white/10 bg-surface-2'
                     }`}
                   >
                     <span
@@ -983,8 +1033,8 @@ export function SettingsDialog({
               </section>
 
               <section>
-                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-500">Exam banks</h3>
-                <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-3">Exam banks</h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-ink-3">
                   Each link you add becomes its own bank on the Exam bank page, with its own folders and Save buttons.
                   The folder has to be shared with “anyone with the link”.
                 </p>
@@ -993,15 +1043,15 @@ export function SettingsDialog({
                   {examBanks.map((bank) => (
                     <li
                       key={bank.id}
-                      className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2"
+                      className="flex items-center gap-2.5 rounded-xl border border-line bg-surface-1 px-3 py-2"
                     >
                       <FolderOpen className="h-3.5 w-3.5 shrink-0 text-amber-300/80" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[12px] text-slate-200">{bank.name}</span>
-                        <span className="block truncate font-mono text-[10px] text-slate-600">{bank.folderId}</span>
+                        <span className="block truncate text-[12px] text-ink-1">{bank.name}</span>
+                        <span className="block truncate font-mono text-[10px] text-ink-4">{bank.folderId}</span>
                       </span>
                       {bank.builtin ? (
-                        <span className="shrink-0 rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-slate-500 ring-1 ring-inset ring-white/10">
+                        <span className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] text-ink-3 ring-1 ring-inset ring-white/10">
                           Built in
                         </span>
                       ) : (
@@ -1009,7 +1059,7 @@ export function SettingsDialog({
                           type="button"
                           onClick={() => void removeBank(bank.id)}
                           disabled={bankBusy}
-                          className="focus-ring shrink-0 rounded-lg px-2 py-1 text-[11px] text-slate-400 transition hover:bg-rose-500/[0.1] hover:text-rose-200 disabled:opacity-40"
+                          className="focus-ring shrink-0 rounded-lg px-2 py-1 text-[11px] text-ink-2 transition hover:bg-rose-500/[0.1] hover:text-rose-200 disabled:opacity-40"
                         >
                           Remove
                         </button>
@@ -1023,7 +1073,7 @@ export function SettingsDialog({
                     value={bankName}
                     onChange={(event) => setBankName(event.target.value)}
                     placeholder="Name (optional)"
-                    className="focus-ring h-9 min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 text-[11.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 sm:w-[38%]"
+                    className="focus-ring h-9 min-w-0 rounded-lg border border-line bg-surface-1 px-2.5 text-[11.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 sm:w-[38%]"
                   />
                   <input
                     value={bankUrl}
@@ -1033,13 +1083,13 @@ export function SettingsDialog({
                     }}
                     placeholder="https://drive.google.com/drive/folders/…"
                     spellCheck={false}
-                    className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 font-mono text-[11px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40"
+                    className="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface-1 px-2.5 font-mono text-[11px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40"
                   />
                   <button
                     type="button"
                     onClick={() => void addBank()}
                     disabled={bankBusy || !bankUrl.trim()}
-                    className="focus-ring inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.06] px-3 py-1.5 text-[11.5px] font-medium text-slate-200 transition hover:border-white/20 hover:text-white disabled:opacity-40"
+                    className="focus-ring inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-line-strong bg-surface-2 px-3 py-1.5 text-[11.5px] font-medium text-ink-1 transition hover:border-white/20 hover:text-white disabled:opacity-40"
                   >
                     {bankBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
                     Add
@@ -1058,7 +1108,7 @@ export function SettingsDialog({
               <button
                 type="button"
                 onClick={() => onPreferences({ ...DEFAULT_PREFERENCES })}
-                className="focus-ring rounded-lg border border-white/[0.08] px-3 py-1.5 text-[11.5px] text-slate-400 transition hover:border-white/15 hover:text-slate-200"
+                className="focus-ring rounded-lg border border-line px-3 py-1.5 text-[11.5px] text-ink-2 transition hover:border-white/15 hover:text-ink-1"
               >
                 Reset to defaults
               </button>
@@ -1066,7 +1116,7 @@ export function SettingsDialog({
           )}
         </div>
 
-        <div className="flex items-center gap-2 border-t border-white/[0.06] px-5 py-3 text-[11px] text-slate-600">
+        <div className="flex items-center gap-2 border-t border-line px-5 py-3 text-[11px] text-ink-4">
           <Palette className="h-3 w-3" />
           <span>Saved to this device only.</span>
         </div>

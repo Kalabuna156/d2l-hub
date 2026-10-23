@@ -37,8 +37,13 @@ export function CourseCard({ course, index = 0, preview = false, onOpen }: Cours
 
   return (
     <article
-      className="animate-rise group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.07] bg-[color-mix(in_srgb,var(--chrome-solid)_90%,transparent)] transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.16] hover:shadow-[0_18px_40px_-24px_rgba(109,94,252,0.7)]"
-      style={{ animationDelay: `${Math.min(index, 12) * 28}ms` }}
+      className="animate-rise group relative flex flex-col overflow-hidden rounded-[15px] border border-line shadow-[0_1px_0_rgba(255,255,255,0.05),0_20px_40px_-30px_rgba(0,0,0,0.9)] transition-[transform,border-color,box-shadow] duration-200 ease-[var(--ease-out)] hover:-translate-y-[2px] hover:border-line-strong hover:shadow-[0_1px_0_rgba(255,255,255,0.08),0_26px_50px_-28px_rgba(0,0,0,1),0_0_0_1px_color-mix(in_srgb,var(--color-violet-400)_16%,transparent)]"
+      style={{
+        animationDelay: `${Math.min(index, 12) * 26}ms`,
+        // The body carries a whisper of the band's hue, so a card is one object
+        // instead of a colour swatch glued to a grey box.
+        backgroundColor: `color-mix(in oklab, ${theme.from} 7%, color-mix(in srgb, var(--chrome-solid) 72%, transparent))`,
+      }}
     >
       <a
         href={href}
@@ -50,28 +55,36 @@ export function CourseCard({ course, index = 0, preview = false, onOpen }: Cours
         className="focus-ring block"
       >
         <div
-          className="relative h-[86px] overflow-hidden"
-          style={{ backgroundImage: `linear-gradient(135deg, ${theme.from} 0%, ${theme.to} 100%)` }}
+          className="relative h-[78px] overflow-hidden"
+          style={{
+            // oklab keeps the hue's chroma when mixed into near-black; in srgb
+            // the same mix drifts towards mud.
+            backgroundImage: `linear-gradient(150deg, color-mix(in oklab, ${theme.from} 84%, #080a12) 0%, color-mix(in oklab, ${theme.to} 96%, #080a12) 100%)`,
+          }}
         >
+          {/* Light rakes across the band from the top-left, and the subject
+              initials sit half-lit in the corner like a watermark. */}
           <div
-            className="absolute inset-0 opacity-[0.35]"
+            className="absolute inset-0"
             style={{
               backgroundImage:
-                'radial-gradient(circle at 18% 20%, rgba(255,255,255,0.55), transparent 42%), linear-gradient(120deg, transparent 45%, rgba(0,0,0,0.28) 100%)',
+                'radial-gradient(120% 140% at 6% -24%, rgba(255,255,255,0.26), transparent 46%), linear-gradient(115deg, transparent 42%, rgba(0,0,0,0.46) 100%)',
             }}
           />
           <div
-            className="absolute inset-0 opacity-[0.16]"
+            className="absolute inset-0 opacity-[0.13]"
             style={{
               backgroundImage:
-                'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-              backgroundSize: '22px 22px',
+                'linear-gradient(rgba(255,255,255,0.55) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.55) 1px, transparent 1px)',
+              backgroundSize: '20px 20px',
             }}
           />
-          <span className="absolute bottom-1 right-3 select-none font-display text-[38px] font-black leading-none tracking-tight text-white/20">
+          {/* A dark wash keeps the subject hue as a tint, not a sticker. */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/60" />
+          <span className="absolute -bottom-1 right-2.5 select-none font-display text-[40px] font-black leading-none tracking-[-0.04em] text-white/[0.22] [text-shadow:0_1px_0_rgba(255,255,255,0.18)]">
             {info.initials}
           </span>
-          <span className="absolute left-3 top-3 rounded-full bg-black/25 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/85 backdrop-blur-sm">
+          <span className="absolute left-2.5 top-2.5 rounded-full border border-white/15 bg-black/30 px-2 py-[2px] text-[8.5px] font-semibold uppercase tracking-[0.14em] text-white/90 backdrop-blur-md">
             {info.kind === 'course' ? 'Course' : 'Resource'}
           </span>
           {course.imageUrl && (
@@ -90,7 +103,10 @@ export function CourseCard({ course, index = 0, preview = false, onOpen }: Cours
       </a>
 
       <div className="flex flex-1 flex-col p-3.5">
-        <p className="truncate font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate-500" title={course.code}>
+        <p
+          className="truncate font-mono text-[10px] uppercase tracking-[0.1em] text-ink-4"
+          title={course.code}
+        >
           {course.code || 'D2L'}
         </p>
         <a
@@ -99,17 +115,17 @@ export function CourseCard({ course, index = 0, preview = false, onOpen }: Cours
           rel={preview ? undefined : 'noreferrer'}
           tabIndex={preview ? -1 : undefined}
           onClick={openInApp}
-          className="focus-ring mt-1.5 line-clamp-2 text-[13.5px] font-semibold leading-snug text-slate-100 transition group-hover:text-white"
+          className="focus-ring mt-1.5 line-clamp-2 text-[13px] font-semibold leading-snug tracking-[-0.012em] text-ink-1 transition-colors duration-150 group-hover:text-white"
           title={course.name}
         >
           {course.name}
         </a>
-        <p className="mt-1 text-[11px] text-slate-500">
+        <p className="mt-1 truncate text-[10.5px] text-ink-3">
           {info.subjectLabel}
           {info.number ? ` · ${info.number}` : ''} · {info.termLabel}
         </p>
 
-        <div className="mt-3 flex items-center gap-1 border-t border-white/[0.06] pt-2.5">
+        <div className="mt-3 flex items-center gap-0.5 border-t border-line pt-2">
           {quickLinks(course).map((link) => {
             const Icon = link.icon;
             return (
@@ -122,17 +138,19 @@ export function CourseCard({ course, index = 0, preview = false, onOpen }: Cours
                 title={preview ? 'Connect D2L to open this' : link.label}
                 aria-label={preview ? link.label : `Open ${link.label} in D2L`}
                 aria-disabled={preview || undefined}
-                className={`focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition ${
-                  preview ? 'opacity-40' : 'hover:bg-white/[0.08] hover:text-slate-100'
+                className={`focus-ring grid h-[26px] w-[26px] place-items-center rounded-[7px] transition-[background-color,color,transform] duration-150 ease-[var(--ease-out)] ${
+                  preview
+                    ? 'text-ink-4 opacity-40'
+                    : 'text-ink-4 hover:bg-surface-2 hover:text-ink-1 active:scale-95'
                 }`}
               >
-                <Icon className="h-[15px] w-[15px]" strokeWidth={1.8} />
+                <Icon className="h-[14.5px] w-[14.5px]" strokeWidth={1.8} />
               </a>
             );
           })}
           {preview ? (
             <span
-              className="ml-auto rounded-lg px-1.5 py-1 text-[10.5px] font-medium uppercase tracking-[0.1em] text-slate-600"
+              className="ml-auto rounded-[6px] px-1.5 py-1 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-ink-4"
               title="Connect your D2L account to open the real course"
             >
               Sample
@@ -144,10 +162,10 @@ export function CourseCard({ course, index = 0, preview = false, onOpen }: Cours
               rel="noreferrer"
               onClick={openInApp}
               aria-label={`Open ${course.name}`}
-              className="focus-ring ml-auto flex items-center gap-1 rounded-lg px-1.5 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
+              className="focus-ring ml-auto flex items-center gap-0.5 rounded-[7px] px-1.5 py-1 text-[10.5px] font-medium text-ink-3 transition-[background-color,color,transform] duration-150 ease-[var(--ease-out)] hover:bg-surface-2 hover:text-ink-1 active:scale-95"
             >
               View
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="h-3 w-3 transition-transform duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5" />
             </a>
           )}
         </div>

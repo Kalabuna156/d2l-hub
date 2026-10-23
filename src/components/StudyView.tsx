@@ -103,7 +103,7 @@ function teachingCourses(courses: Course[]): Course[] {
 function QuestionCard({ question, index }: { question: StudyQuestion; index: number }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-xl border border-white/[0.07] bg-white/[0.02]">
+    <div className="rounded-xl border border-line bg-surface-1">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -113,16 +113,16 @@ function QuestionCard({ question, index }: { question: StudyQuestion; index: num
         <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-violet-500/[0.14] text-[10px] font-semibold text-violet-200">
           {index + 1}
         </span>
-        <span className="min-w-0 flex-1 text-[12.5px] leading-relaxed text-slate-200">{question.question}</span>
+        <span className="min-w-0 flex-1 text-[12.5px] leading-relaxed text-ink-1">{question.question}</span>
         <ChevronDown
-          className={`mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition ${open ? 'rotate-180' : ''}`}
+          className={`mt-0.5 h-4 w-4 shrink-0 text-ink-3 transition ${open ? 'rotate-180' : ''}`}
         />
       </button>
       {open && (
-        <div className="border-t border-white/[0.06] px-3.5 py-3 pl-[42px]">
-          <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-slate-300">{question.answer}</p>
+        <div className="border-t border-line px-3.5 py-3 pl-[42px]">
+          <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-ink-2">{question.answer}</p>
           {question.source && (
-            <p className="mt-2 text-[10.5px] text-slate-600">From {question.source}</p>
+            <p className="mt-2 text-[10.5px] text-ink-4">From {question.source}</p>
           )}
         </div>
       )}
@@ -238,14 +238,14 @@ function FileRow({
 
   return (
     <div>
-      <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2.5">
-        <FileText className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+      <div className="flex items-center gap-2.5 rounded-xl border border-line bg-surface-1 px-3 py-2.5">
+        <FileText className="h-3.5 w-3.5 shrink-0 text-ink-3" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[12px] text-slate-200">{file.title}</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-slate-600">
+          <p className="truncate text-[12px] text-ink-1">{file.title}</p>
+          <p className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-ink-4">
             <span>{file.source === 'd2l' ? 'D2L course content' : 'Content Space'}</span>
             {file.source === 'd2l' && (
-              <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[9.5px] text-slate-500">
+              <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[9.5px] text-ink-3">
                 not downloaded
               </span>
             )}
@@ -264,7 +264,7 @@ function FileRow({
                 href={file.url ?? '#'}
                 target="_blank"
                 rel="noreferrer"
-                className="focus-ring inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10.5px] font-medium text-slate-300 transition hover:border-violet-400/30 hover:text-violet-100"
+                className="focus-ring inline-flex items-center gap-1 rounded-lg border border-line bg-surface-1 px-2 py-1 text-[10.5px] font-medium text-ink-2 transition hover:border-violet-400/30 hover:text-violet-100"
               >
                 Open
               </a>
@@ -273,7 +273,7 @@ function FileRow({
                 download
                 title="Save a copy"
                 aria-label={`Download ${file.title}`}
-                className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-white"
+                className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-2 hover:text-white"
               >
                 <Download className="h-3.5 w-3.5" />
               </a>
@@ -282,7 +282,7 @@ function FileRow({
                 onClick={() => void reveal()}
                 title="Show in folder"
                 aria-label="Show in folder"
-                className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-white"
+                className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-2 hover:text-white"
               >
                 <FolderSearch className="h-3.5 w-3.5" />
               </button>
@@ -293,7 +293,7 @@ function FileRow({
                 href={file.url ?? undefined}
                 target="_blank"
                 rel="noreferrer"
-                className="focus-ring inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10.5px] font-medium text-slate-300 transition hover:border-violet-400/30 hover:text-violet-100"
+                className="focus-ring inline-flex items-center gap-1 rounded-lg border border-line bg-surface-1 px-2 py-1 text-[10.5px] font-medium text-ink-2 transition hover:border-violet-400/30 hover:text-violet-100"
               >
                 Open
                 <ArrowUpRight className="h-3 w-3" />
@@ -305,7 +305,7 @@ function FileRow({
                   disabled={busy}
                   title="Download this file to Content Space"
                   aria-label={`Download ${file.title} to Content Space`}
-                  className="focus-ring inline-flex h-7 items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 text-[10.5px] font-medium text-slate-300 transition hover:border-violet-400/30 hover:text-violet-100 disabled:opacity-50"
+                  className="focus-ring inline-flex h-7 items-center gap-1 rounded-lg border border-line bg-surface-1 px-2 text-[10.5px] font-medium text-ink-2 transition hover:border-violet-400/30 hover:text-violet-100 disabled:opacity-50"
                 >
                   {busy ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -354,7 +354,7 @@ function FileRow({
                 >
                   {VIDEO_CHANNELS.find((item) => item.channel === video.channel)?.short}
                 </span>
-                <p className="text-[10.5px] font-medium text-slate-300">{video.channelName}</p>
+                <p className="text-[10.5px] font-medium text-ink-2">{video.channelName}</p>
                 <span className="rounded-full bg-violet-500/[0.14] px-1.5 py-0.5 text-[9px] font-medium text-violet-200">
                   {video.fromAi ? 'AI pick' : 'Channel search'}
                 </span>
@@ -362,13 +362,13 @@ function FileRow({
                   type="button"
                   onClick={() => setVideo(null)}
                   aria-label="Close video suggestion"
-                  className="focus-ring ml-auto grid h-5 w-5 place-items-center rounded text-slate-500 hover:bg-white/10 hover:text-white"
+                  className="focus-ring ml-auto grid h-5 w-5 place-items-center rounded text-ink-3 hover:bg-white/10 hover:text-white"
                 >
                   <X className="h-3 w-3" />
                 </button>
               </div>
-              <p className="mt-1.5 text-[12px] font-medium text-slate-100">{video.title}</p>
-              <p className="mt-0.5 text-[10.5px] leading-relaxed text-slate-500">{video.reason}</p>
+              <p className="mt-1.5 text-[12px] font-medium text-ink-1">{video.title}</p>
+              <p className="mt-0.5 text-[10.5px] leading-relaxed text-ink-3">{video.reason}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <a
                   href={video.url}
@@ -383,11 +383,11 @@ function FileRow({
                   type="button"
                   onClick={() => void findVideo(video.channel)}
                   disabled={videoBusy !== null}
-                  className="focus-ring rounded-lg border border-white/[0.08] px-2.5 py-1 text-[10.5px] text-slate-400 transition hover:border-white/20 hover:text-white disabled:opacity-50"
+                  className="focus-ring rounded-lg border border-line px-2.5 py-1 text-[10.5px] text-ink-2 transition hover:border-white/20 hover:text-white disabled:opacity-50"
                 >
                   Ask for another
                 </button>
-                <span className="text-[9.5px] text-slate-600">opens this channel's search</span>
+                <span className="text-[9.5px] text-ink-4">opens this channel's search</span>
               </div>
             </>
           ) : null}
@@ -499,8 +499,8 @@ export function StudyView({
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-[19px] font-semibold tracking-tight text-white">Study</h2>
-          <p className="mt-1 text-[12.5px] text-slate-500">
+          <h2 className="font-display text-[20px] font-semibold tracking-[-0.026em] text-ink-1">Study queue</h2>
+          <p className="mt-1 text-[12.5px] text-ink-3">
             Pick a quiz, midterm or assignment — Study turns your outline and files into a plan.
           </p>
         </div>
@@ -508,7 +508,7 @@ export function StudyView({
           <button
             type="button"
             onClick={onOpenSettings}
-            className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/[0.08] px-2.5 text-[11px] text-slate-300 transition hover:border-white/20 hover:text-white"
+            className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[11px] text-ink-2 transition hover:border-white/20 hover:text-white"
           >
             <Sparkles className="h-3.5 w-3.5 text-violet-300" />
             {ai?.configured ? 'AI settings' : 'Connect API key'}
@@ -523,7 +523,7 @@ export function StudyView({
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-[12.5px] font-medium text-violet-100">Connect your Gemini API key</p>
-            <p className="mt-0.5 text-[11.5px] leading-relaxed text-slate-400">
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-ink-2">
               Study builds a plan from your outline without one. With a key, the AI reads your course
               files and writes the plan for this assessment. OpenAI and Claude keys work too.
             </p>
@@ -566,7 +566,7 @@ export function StudyView({
               <ArrowUpRight className="h-3 w-3" />
             </span>
           </div>
-          <h3 className="mt-2 font-display text-[18px] font-semibold leading-snug text-white">
+          <h3 className="mt-2 font-display text-[17px] font-semibold leading-snug tracking-[-0.02em] text-ink-1">
             {nextUp.title}
           </h3>
           <p className="mt-0.5 text-[11.5px] text-rose-100/60">
@@ -581,11 +581,11 @@ export function StudyView({
 
       {upcoming.length === 0 ? (
         <div className="panel grid place-items-center px-6 py-16 text-center">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/[0.04] text-slate-500 ring-1 ring-inset ring-white/[0.07]">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-surface-1 text-ink-3 ring-1 ring-inset ring-white/[0.07]">
             <BookOpenCheck className="h-5 w-5" />
           </span>
-          <p className="mt-4 text-sm font-medium text-slate-300">Nothing due yet</p>
-          <p className="mt-1 max-w-sm text-[12px] text-slate-600">
+          <p className="mt-4 text-sm font-medium text-ink-2">Nothing due yet</p>
+          <p className="mt-1 max-w-sm text-[12px] text-ink-4">
             Once your calendar has a quiz, midterm or assignment, it appears here with a plan.
           </p>
         </div>
@@ -605,21 +605,21 @@ export function StudyView({
                   className={`focus-ring w-full rounded-xl border px-3 py-2.5 text-left transition ${
                     active
                       ? 'border-violet-400/40 bg-violet-500/[0.1]'
-                      : 'border-white/[0.07] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.04]'
+                      : 'border-line bg-surface-1 hover:border-line-strong hover:bg-surface-1'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="grid w-9 shrink-0 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.04] py-1 leading-none">
-                      <span className="text-[8.5px] font-semibold tracking-[0.1em] text-slate-500">
+                    <div className="grid w-9 shrink-0 place-items-center rounded-lg border border-line bg-surface-1 py-1 leading-none">
+                      <span className="text-[8.5px] font-semibold tracking-[0.1em] text-ink-3">
                         {date.month}
                       </span>
-                      <span className="mt-0.5 font-display text-[15px] font-semibold text-slate-100">
+                      <span className="mt-0.5 font-display text-[15px] font-semibold text-ink-1">
                         {date.day}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className={`truncate text-[12.5px] font-medium ${rowTone.title}`}>{event.title}</p>
-                      <p className="mt-0.5 truncate text-[10.5px] text-slate-500">
+                      <p className="mt-0.5 truncate text-[10.5px] text-ink-3">
                         {courseShortCode(event.courseCode) || course?.code || 'No course'} ·{' '}
                         {timeLabel(event.startsAt)} · {relativeLabel(event.startsAt)}
                       </p>
@@ -637,8 +637,8 @@ export function StudyView({
                   <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-violet-500/[0.1] text-violet-300 ring-1 ring-inset ring-violet-400/20">
                     <Sparkles className="h-4 w-4" />
                   </span>
-                  <p className="mt-3 text-[13px] font-medium text-slate-300">Choose an assessment</p>
-                  <p className="mt-1 max-w-[320px] text-[11.5px] leading-relaxed text-slate-600">
+                  <p className="mt-3 text-[13px] font-medium text-ink-2">Choose an assessment</p>
+                  <p className="mt-1 max-w-[320px] text-[11.5px] leading-relaxed text-ink-4">
                     Study uses the outline's chapters and your course files to say what to review, what to
                     practise, and what to bring.
                   </p>
@@ -649,13 +649,13 @@ export function StudyView({
                 <div className="panel px-4 py-4">
                   <div className="flex flex-wrap items-start gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-3">
                         {selectedCourse?.name ?? payload?.courseName ?? selected.courseCode ?? 'Assessment'}
                       </p>
                       <h3 className={`mt-1 font-display text-[17px] font-semibold leading-snug ${tone?.title ?? 'text-white'}`}>
                         {selected.title}
                       </h3>
-                      <p className="mt-1 text-[11.5px] text-slate-500">
+                      <p className="mt-1 text-[11.5px] text-ink-3">
                         {shortDateParts(selected.startsAt).weekday} · {timeLabel(selected.startsAt)} ·{' '}
                         {relativeLabel(selected.startsAt)}
                         {payload?.outlineFileName ? ` · Outline: ${payload.outlineFileName}` : ''}
@@ -671,7 +671,7 @@ export function StudyView({
                         </span>
                       )}
                       {payload?.generatedAt && (
-                        <span className="rounded-full bg-white/[0.05] px-2 py-1 text-[10px] text-slate-500">
+                        <span className="rounded-full bg-surface-2 px-2 py-1 text-[10px] text-ink-3">
                           {payload.cached ? 'Saved plan' : 'New plan'}
                         </span>
                       )}
@@ -705,8 +705,8 @@ export function StudyView({
                 {loading && !payload && (
                   <div className="panel grid place-items-center px-6 py-14 text-center">
                     <Loader2 className="h-5 w-5 animate-spin text-violet-300" />
-                    <p className="mt-3 text-[13px] font-medium text-slate-200">Building your study plan…</p>
-                    <p className="mt-1 text-[11px] text-slate-500">
+                    <p className="mt-3 text-[13px] font-medium text-ink-1">Building your study plan…</p>
+                    <p className="mt-1 text-[11px] text-ink-3">
                       {ai?.configured
                         ? ai.allowCourseFiles
                           ? 'Using your outline, file names and the text of your files'
@@ -718,7 +718,7 @@ export function StudyView({
 
                 {payload && !plan && !loading && (
                   <div className="panel px-4 py-4">
-                    <p className="text-[12px] text-slate-400">
+                    <p className="text-[12px] text-ink-2">
                       No plan could be built yet. Add the course or import its outline, then rebuild.
                     </p>
                   </div>
@@ -742,35 +742,35 @@ export function StudyView({
                   <>
                     {plan.overview && (
                       <section className="panel px-4 py-3.5">
-                        <p className="text-[12.5px] leading-relaxed text-slate-300">{plan.overview}</p>
+                        <p className="text-[12.5px] leading-relaxed text-ink-2">{plan.overview}</p>
                       </section>
                     )}
 
                     {payload.announcements.length > 0 && (
                       <section className="panel overflow-hidden">
-                        <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-2.5">
-                          <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
+                          <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                             Coverage from announcements
                           </h4>
-                          <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-slate-500">
+                          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] text-ink-3">
                             {payload.announcements.length}
                           </span>
                         </div>
-                        <div className="divide-y divide-white/[0.055]">
+                        <div className="divide-y divide-line">
                           {payload.announcements.map((announcement) => (
                             <a
                               key={announcement.id}
                               href={announcement.url}
                               target="_blank"
                               rel="noreferrer"
-                              className="block px-4 py-3 transition hover:bg-white/[0.03]"
+                              className="block px-4 py-3 transition hover:bg-surface-1"
                             >
-                              <p className="flex items-center gap-1.5 text-[12px] font-medium text-slate-200">
+                              <p className="flex items-center gap-1.5 text-[12px] font-medium text-ink-1">
                                 {announcement.title}
-                                <ArrowUpRight className="h-3 w-3 shrink-0 text-slate-600" />
+                                <ArrowUpRight className="h-3 w-3 shrink-0 text-ink-4" />
                               </p>
                               {announcement.publishedAt && (
-                                <p className="mt-0.5 text-[10px] text-slate-600">
+                                <p className="mt-0.5 text-[10px] text-ink-4">
                                   {new Date(announcement.publishedAt).toLocaleDateString('en-CA', {
                                     month: 'short',
                                     day: 'numeric',
@@ -778,7 +778,7 @@ export function StudyView({
                                 </p>
                               )}
                               {announcement.text && (
-                                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-500">
+                                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-ink-3">
                                   {announcement.text}
                                 </p>
                               )}
@@ -790,15 +790,15 @@ export function StudyView({
 
                     {plan.focus.length > 0 && (
                       <section className="panel overflow-hidden">
-                        <h4 className="border-b border-white/[0.06] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        <h4 className="border-b border-line px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                           What to review
                         </h4>
-                        <div className="divide-y divide-white/[0.055]">
+                        <div className="divide-y divide-line">
                           {plan.focus.map((item, index) => (
                             <div key={`${item.topic}-${index}`} className="px-4 py-3">
-                              <p className="text-[12.5px] font-medium text-slate-100">{item.topic}</p>
+                              <p className="text-[12.5px] font-medium text-ink-1">{item.topic}</p>
                               {item.detail && (
-                                <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500">{item.detail}</p>
+                                <p className="mt-1 text-[11.5px] leading-relaxed text-ink-3">{item.detail}</p>
                               )}
                             </div>
                           ))}
@@ -808,12 +808,12 @@ export function StudyView({
 
                     {plan.checklist.length > 0 && (
                       <section className="panel px-4 py-3.5">
-                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                           Checklist
                         </h4>
                         <ul className="mt-2 space-y-1.5">
                           {plan.checklist.map((item) => (
-                            <li key={item} className="flex items-start gap-2 text-[11.5px] leading-relaxed text-slate-300">
+                            <li key={item} className="flex items-start gap-2 text-[11.5px] leading-relaxed text-ink-2">
                               <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/70" />
                               {item}
                             </li>
@@ -824,19 +824,19 @@ export function StudyView({
 
                     {plan.bookPractice.length > 0 && (
                       <section className="panel px-4 py-3.5">
-                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                           From the book
                         </h4>
                         <div className="mt-2 space-y-3">
                           {plan.bookPractice.map((item, index) => (
                             <div key={`${item.source}-${index}`}>
-                              <p className="text-[12px] font-medium text-slate-200">{item.source}</p>
+                              <p className="text-[12px] font-medium text-ink-1">{item.source}</p>
                               {item.problems.length > 0 && (
                                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                                   {item.problems.map((problem) => (
                                     <span
                                       key={problem}
-                                      className="rounded-lg border border-white/[0.07] bg-white/[0.04] px-2 py-1 text-[11px] text-slate-300"
+                                      className="rounded-lg border border-line bg-surface-1 px-2 py-1 text-[11px] text-ink-2"
                                     >
                                       {problem}
                                     </span>
@@ -852,13 +852,13 @@ export function StudyView({
                     {plan.practice.length > 0 && (
                       <section className="panel px-4 py-3.5">
                         <div className="flex items-center gap-2">
-                          <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                          <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                             Practice questions
                           </h4>
-                          <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-slate-500">
+                          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] text-ink-3">
                             {plan.practice.length}
                           </span>
-                          <span className="ml-auto text-[10px] text-slate-600">Tap to reveal the answer</span>
+                          <span className="ml-auto text-[10px] text-ink-4">Tap to reveal the answer</span>
                         </div>
                         <div className="mt-2.5 space-y-2">
                           {plan.practice.map((question, index) => (
@@ -874,10 +874,10 @@ export function StudyView({
                 {payload && (
                   <section className="panel px-4 py-3.5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                      <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                         Files for this assessment
                       </h4>
-                      <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-slate-500">
+                      <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] text-ink-3">
                         {payload.files.length}
                       </span>
                       {contentHref && (
@@ -885,15 +885,15 @@ export function StudyView({
                           href={contentHref}
                           target="_blank"
                           rel="noreferrer"
-                          className="focus-ring ml-auto inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[10.5px] font-medium text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+                          className="focus-ring ml-auto inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[10.5px] font-medium text-ink-2 transition hover:bg-surface-2 hover:text-white"
                         >
                           Course content
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                     </div>
-                    <p className="mt-1 text-[10.5px] leading-relaxed text-slate-600">
-                      D2L files appear here before you save them. <span className="text-slate-400">Download</span>{' '}
+                    <p className="mt-1 text-[10.5px] leading-relaxed text-ink-4">
+                      D2L files appear here before you save them. <span className="text-ink-2">Download</span>{' '}
                       adds one to Content Space; <span className="text-sky-300/80">3B1B</span> or{' '}
                       <span className="text-emerald-300/80">OCT</span> asks your AI what to watch for it.
                     </p>
@@ -907,7 +907,7 @@ export function StudyView({
                           <Link2 className="h-3 w-3" />
                           Link this assessment to a course
                         </label>
-                        <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                        <p className="mt-1 text-[11px] leading-relaxed text-ink-3">
                           This event has no course code. Pick its course to list the D2L files you can study and
                           download.
                         </p>
@@ -918,7 +918,7 @@ export function StudyView({
                             const course = courses.find((item) => item.id === change.target.value);
                             if (course) linkCourse(course);
                           }}
-                          className="focus-ring mt-2 h-9 w-full rounded-lg border border-white/[0.08] bg-[var(--chrome-solid)] px-2.5 text-[12px] text-slate-200"
+                          className="focus-ring mt-2 field h-9"
                         >
                           <option value="">Choose a course…</option>
                           {linkedCourses.map((course) => (
@@ -975,8 +975,8 @@ export function StudyView({
                         ))}
                       </div>
                     ) : (
-                      <div className="mt-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-3">
-                        <p className="text-[11.5px] leading-relaxed text-slate-500">
+                      <div className="mt-2.5 rounded-xl border border-line bg-surface-1 px-3 py-3">
+                        <p className="text-[11.5px] leading-relaxed text-ink-3">
                           {selectedCourse
                             ? 'No files are saved and D2L did not return a downloadable file list for this course. Open the course content to find the lectures, or add a PDF in Content Space and rebuild.'
                             : linkedCourses.length > 0
@@ -988,7 +988,7 @@ export function StudyView({
                             href={contentHref}
                             target="_blank"
                             rel="noreferrer"
-                            className="focus-ring mt-2 inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-slate-300 transition hover:border-violet-400/30 hover:text-violet-100"
+                            className="focus-ring mt-2 inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2.5 py-1 text-[11px] font-medium text-ink-2 transition hover:border-violet-400/30 hover:text-violet-100"
                           >
                             Open course content in D2L
                             <ExternalLink className="h-3 w-3" />
@@ -1000,7 +1000,7 @@ export function StudyView({
                 )}
 
                 {payload?.readByAi && payload.readByAi.length > 0 && (
-                  <p className="px-1 text-[10.5px] leading-relaxed text-slate-600">
+                  <p className="px-1 text-[10.5px] leading-relaxed text-ink-4">
                     The AI read: {payload.readByAi.join(' · ')}
                   </p>
                 )}

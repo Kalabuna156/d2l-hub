@@ -52,7 +52,7 @@ function guessCourse(fileName: string, courses: Course[]): Course | null {
 }
 
 const fieldClass =
-  'focus-ring h-8 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 text-[12px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 disabled:opacity-60';
+  'focus-ring h-8 rounded-lg border border-line bg-surface-1 px-2 text-[12px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 disabled:opacity-60';
 const inputClass = `${fieldClass} w-full`;
 
 export function CourseFormImport({ open, courses, onClose, onImported }: CourseFormImportProps) {
@@ -162,7 +162,7 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-[6px]"
       role="dialog"
       aria-modal="true"
       aria-label="Import due dates from a course outline"
@@ -170,14 +170,14 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
         if (mouse.target === mouse.currentTarget && !busy && !parsing) onClose();
       }}
     >
-      <div className="animate-rise flex max-h-[88vh] w-full max-w-[620px] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-[var(--chrome-solid)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.95)]">
-        <div className="flex items-start gap-3 border-b border-white/[0.06] px-5 py-4">
+      <div className="pane-float animate-pop flex max-h-[88vh] w-full max-w-[620px] flex-col overflow-hidden">
+        <div className="flex items-start gap-3 border-b border-line px-5 py-4">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-700 shadow-lg shadow-violet-950/60">
             <FileUp className="h-4 w-4 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-[15px] font-semibold text-white">Import dates from an outline</h2>
-            <p className="mt-0.5 text-[12px] text-slate-500">
+            <h2 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">Import dates from an outline</h2>
+            <p className="mt-0.5 text-[12px] text-ink-3">
               Upload your course management form — read here, and kept on this computer for Study.
             </p>
           </div>
@@ -186,7 +186,7 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
             onClick={onClose}
             disabled={busy}
             aria-label="Close"
-            className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/10 hover:text-slate-200 disabled:opacity-50"
+            className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-ink-3 transition hover:bg-white/10 hover:text-ink-1 disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
@@ -224,24 +224,24 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
               className={`focus-ring grid w-full place-items-center rounded-xl border border-dashed px-6 py-10 text-center transition ${
                 dragging
                   ? 'border-violet-400/60 bg-violet-500/[0.08]'
-                  : 'border-white/[0.12] bg-white/[0.02] hover:border-violet-400/40 hover:bg-white/[0.04]'
+                  : 'border-line-strong bg-surface-1 hover:border-violet-400/40 hover:bg-surface-1'
               } disabled:opacity-70`}
             >
               {parsing ? (
                 <>
                   <Loader2 className="h-6 w-6 animate-spin text-violet-300" />
-                  <span className="mt-3 text-[13px] font-medium text-slate-200">Reading the outline…</span>
-                  <span className="mt-1 text-[11.5px] text-slate-500">Looking for dated assessments</span>
+                  <span className="mt-3 text-[13px] font-medium text-ink-1">Reading the outline…</span>
+                  <span className="mt-1 text-[11.5px] text-ink-3">Looking for dated assessments</span>
                 </>
               ) : (
                 <>
-                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/[0.05] text-slate-300 ring-1 ring-inset ring-white/[0.08]">
+                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-surface-2 text-ink-2 ring-1 ring-inset ring-white/[0.08]">
                     <Upload className="h-5 w-5" />
                   </span>
-                  <span className="mt-3 text-[13px] font-medium text-slate-200">
+                  <span className="mt-3 text-[13px] font-medium text-ink-1">
                     Drop the PDF here, or choose a file
                   </span>
-                  <span className="mt-1 max-w-sm text-[11.5px] leading-relaxed text-slate-500">
+                  <span className="mt-1 max-w-sm text-[11.5px] leading-relaxed text-ink-3">
                     A text-based PDF or plain text file with the schedule. Nothing leaves this computer.
                   </span>
                 </>
@@ -250,9 +250,9 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
           ) : (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="min-w-0 flex-1 truncate text-[12px] text-slate-400">
-                  <span className="font-medium text-slate-200">{fileName}</span>
-                  <span className="ml-1.5 text-slate-600">
+                <p className="min-w-0 flex-1 truncate text-[12px] text-ink-2">
+                  <span className="font-medium text-ink-1">{fileName}</span>
+                  <span className="ml-1.5 text-ink-4">
                     · {drafts.length} {drafts.length === 1 ? 'date' : 'dates'} found
                   </span>
                 </p>
@@ -260,14 +260,14 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
                   type="button"
                   onClick={choose}
                   disabled={parsing || busy}
-                  className="focus-ring shrink-0 rounded-lg border border-white/10 px-2.5 py-1 text-[11px] text-slate-300 transition hover:border-white/20 hover:bg-white/[0.06] disabled:opacity-60"
+                  className="focus-ring shrink-0 rounded-lg border border-white/10 px-2.5 py-1 text-[11px] text-ink-2 transition hover:border-white/20 hover:bg-surface-2 disabled:opacity-60"
                 >
                   Choose another file
                 </button>
               </div>
 
               <label className="block">
-                <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-3">
                   Course
                 </span>
                 <select
@@ -288,7 +288,7 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
                 </select>
               </label>
 
-              <div className="flex items-center gap-2 text-[11px] text-slate-500">
+              <div className="flex items-center gap-2 text-[11px] text-ink-3">
                 <label className="flex cursor-pointer items-center gap-1.5">
                   <input
                     type="checkbox"
@@ -308,8 +308,8 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
                     title={draft.raw}
                     className={`rounded-lg border px-2.5 py-2 transition ${
                       draft.selected
-                        ? 'border-white/[0.09] bg-white/[0.03]'
-                        : 'border-white/[0.05] bg-transparent opacity-55'
+                        ? 'border-line bg-surface-1'
+                        : 'border-line bg-transparent opacity-55'
                     }`}
                   >
                     <div className="flex items-start gap-2">
@@ -350,7 +350,7 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
                             className={`${fieldClass} w-[96px] shrink-0`}
                           />
                         </div>
-                        <p className="mt-1 truncate text-[10.5px] text-slate-600">{draft.raw}</p>
+                        <p className="mt-1 truncate text-[10.5px] text-ink-4">{draft.raw}</p>
                       </div>
                     </div>
                   </div>
@@ -367,12 +367,12 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.06] px-5 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-t border-line px-5 py-3">
           <button
             type="button"
             onClick={() => void submit()}
             disabled={busy || parsing || ready.length === 0}
-            className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-violet-500 to-indigo-600 px-3.5 text-[12px] font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:from-violet-400 hover:to-indigo-500 disabled:opacity-50"
+            className="focus-ring flex h-9 items-center justify-center gap-1.5 rounded-lg bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-violet-400)_78%,#0b0d16),color-mix(in_srgb,var(--color-violet-600)_92%,#0b0d16))] px-3.5 text-[12px] font-semibold text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-violet-300)_34%,transparent),0_12px_28px_-14px_color-mix(in_srgb,var(--color-violet-500)_95%,transparent),inset_0_1px_0_rgba(255,255,255,0.22)] transition hover:brightness-[1.12] disabled:opacity-50"
           >
             {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {ready.length === 0
@@ -383,11 +383,11 @@ export function CourseFormImport({ open, courses, onClose, onImported }: CourseF
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="focus-ring h-9 rounded-lg border border-white/10 px-3 text-[11.5px] text-slate-300 transition hover:border-white/20 hover:bg-white/[0.06] disabled:opacity-60"
+            className="focus-ring h-9 rounded-lg border border-white/10 px-3 text-[11.5px] text-ink-2 transition hover:border-white/20 hover:bg-surface-2 disabled:opacity-60"
           >
             Cancel
           </button>
-          <p className="ml-auto hidden text-[10.5px] text-slate-600 sm:block">
+          <p className="ml-auto hidden text-[10.5px] text-ink-4 sm:block">
             You can edit or delete any of them later.
           </p>
         </div>

@@ -37,10 +37,10 @@ const SOURCE_STYLES: Record<CalendarSourceKey, SourceStyle> = {
     dot: 'bg-sky-300',
   },
   notion: {
-    chip: 'border-slate-300/20 bg-slate-200/[0.1] text-slate-100 hover:bg-slate-200/[0.17]',
-    card: 'border-slate-300/20 bg-slate-200/[0.08] text-slate-50 hover:bg-slate-200/[0.13]',
-    time: 'text-slate-300/80',
-    dot: 'bg-slate-200',
+    chip: 'border-line bg-white/[0.06] text-ink-1 hover:bg-white/[0.1]',
+    card: 'border-line bg-white/[0.05] text-ink-1 hover:bg-white/[0.08]',
+    time: 'text-ink-2/80',
+    dot: 'bg-ink-2',
   },
 };
 
@@ -89,11 +89,11 @@ export function MonthBoard({ events, anchor, today, onPickDay, onOpenEvent }: Mo
 
   return (
     <div>
-      <div className="grid grid-cols-7 border-b border-white/[0.06] bg-white/[0.015]">
+      <div className="grid grid-cols-7 border-b border-line bg-white/[0.02]">
         {WEEKDAYS.map((label) => (
           <div
             key={label}
-            className="py-1.5 text-center text-[9.5px] font-semibold uppercase tracking-[0.12em] text-slate-500"
+            className="py-1.5 text-center text-[9.5px] font-semibold uppercase tracking-[0.12em] text-ink-3"
           >
             {label}
           </div>
@@ -113,9 +113,9 @@ export function MonthBoard({ events, anchor, today, onPickDay, onOpenEvent }: Mo
             <div
               key={key}
               onClick={() => onPickDay(date)}
-              className={`group min-h-[118px] cursor-pointer border-b border-white/[0.055] px-1.5 pb-1.5 pt-1 transition ${
+              className={`group min-h-[118px] cursor-pointer border-b border-line px-1.5 pb-1.5 pt-1 transition ${
                 index % 7 === 6 ? '' : 'border-r'
-              } ${inMonth ? 'bg-white/[0.012] hover:bg-white/[0.03]' : 'hover:bg-white/[0.02]'}`}
+              } ${inMonth ? 'bg-white/[0.012] hover:bg-surface-1' : 'hover:bg-surface-1'}`}
             >
               <div className="mb-1 flex justify-center">
                 <button
@@ -131,10 +131,10 @@ export function MonthBoard({ events, anchor, today, onPickDay, onOpenEvent }: Mo
                   })}`}
                   className={`focus-ring grid h-6 min-w-6 place-items-center rounded-full px-1 text-[11px] font-medium tabular-nums transition ${
                     isToday
-                      ? 'bg-white text-slate-900 hover:bg-slate-200'
+                      ? 'bg-white text-slate-900 hover:bg-ink-2'
                       : inMonth
-                        ? 'text-slate-300 hover:bg-white/[0.08] group-hover:text-white'
-                        : 'text-slate-600 hover:bg-white/[0.06]'
+                        ? 'text-ink-2 hover:bg-surface-2 group-hover:text-white'
+                        : 'text-ink-4 hover:bg-surface-2'
                   }`}
                 >
                   {date.getDate()}
@@ -183,7 +183,7 @@ export function MonthBoard({ events, anchor, today, onPickDay, onOpenEvent }: Mo
               </div>
 
               {overflow > 0 && (
-                <p className="mt-1 text-center text-[9.5px] text-slate-600">+{overflow} more</p>
+                <p className="mt-1 text-center text-[9.5px] text-ink-4">+{overflow} more</p>
               )}
             </div>
           );
@@ -212,20 +212,20 @@ export function MultiDayBoard({ dates, events, today, onPickDay, onOpenEvent }: 
         return (
           <div
             key={key}
-            className="flex min-h-[220px] flex-col rounded-xl border border-white/[0.06] bg-white/[0.015] p-2"
+            className="flex min-h-[220px] flex-col rounded-xl border border-line bg-white/[0.02] p-2"
           >
             <button
               type="button"
               onClick={() => onPickDay(date)}
               title={`Open ${date.toLocaleDateString('en-CA', { weekday: 'long' })}`}
-              className="focus-ring mb-2 flex w-full items-center justify-center gap-2 rounded-lg py-1 transition hover:bg-white/[0.04]"
+              className="focus-ring mb-2 flex w-full items-center justify-center gap-2 rounded-lg py-1 transition hover:bg-surface-1"
             >
-              <span className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+              <span className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-ink-3">
                 {date.toLocaleDateString('en-CA', { weekday: 'short' })}
               </span>
               <span
                 className={`grid h-7 w-7 place-items-center rounded-full text-[12px] font-medium tabular-nums ${
-                  isToday ? 'bg-white text-slate-900' : 'text-slate-300'
+                  isToday ? 'bg-white text-slate-900' : 'text-ink-2'
                 }`}
               >
                 {date.getDate()}
@@ -233,7 +233,7 @@ export function MultiDayBoard({ dates, events, today, onPickDay, onOpenEvent }: 
             </button>
 
             {dayEvents.length === 0 ? (
-              <p className="grid flex-1 place-items-center py-5 text-[11px] text-slate-600">
+              <p className="grid flex-1 place-items-center py-5 text-[11px] text-ink-4">
                 Nothing scheduled
               </p>
             ) : (
@@ -302,26 +302,26 @@ export function DayBoard({ date, events, today, onOpenEvent }: DayBoardProps) {
   return (
     <div className="px-3 py-3">
       <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
-        <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+        <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
           {isToday ? 'Today' : date.toLocaleDateString('en-CA', { weekday: 'long' })} ·{' '}
           {date.toLocaleDateString('en-CA', { month: 'long', day: 'numeric' })}
         </p>
-        <p className="text-[10.5px] text-slate-600">
+        <p className="text-[10.5px] text-ink-4">
           {dayEvents.length} {dayEvents.length === 1 ? 'item' : 'items'}
         </p>
       </div>
 
       {dayEvents.length === 0 ? (
-        <div className="grid place-items-center rounded-xl border border-dashed border-white/[0.08] bg-white/[0.015] px-6 py-12 text-center">
-          <CalendarDays className="h-5 w-5 text-slate-600" />
-          <p className="mt-3 text-[12.5px] font-medium text-slate-300">Nothing scheduled</p>
-          <p className="mt-1 max-w-sm text-[11.5px] text-slate-600">
+        <div className="grid place-items-center rounded-xl border border-dashed border-line bg-white/[0.02] px-6 py-12 text-center">
+          <CalendarDays className="h-5 w-5 text-ink-4" />
+          <p className="mt-3 text-[12.5px] font-medium text-ink-2">Nothing scheduled</p>
+          <p className="mt-1 max-w-sm text-[11.5px] text-ink-4">
             No D2L, Google Calendar or Notion entries on{' '}
             {date.toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric' })}.
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-white/[0.05] overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.015]">
+        <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white/[0.02]">
           {dayEvents.map((event) => {
             const style = styleFor(event);
             const source = sourceLabel(event) ?? 'D2L';
@@ -334,17 +334,17 @@ export function DayBoard({ date, events, today, onOpenEvent }: DayBoardProps) {
                   <p className={`text-[11.5px] font-semibold tabular-nums ${style.time}`}>
                     {timeLabel(event.startsAt) || '—'}
                   </p>
-                  {end && <p className="mt-0.5 text-[10px] tabular-nums text-slate-600">{end}</p>}
+                  {end && <p className="mt-0.5 text-[10px] tabular-nums text-ink-4">{end}</p>}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12.5px] font-medium text-slate-100">{event.title}</p>
-                  <p className="mt-1 flex items-center gap-1.5 truncate text-[10.5px] text-slate-500">
+                  <p className="truncate text-[12.5px] font-medium text-ink-1">{event.title}</p>
+                  <p className="mt-1 flex items-center gap-1.5 truncate text-[10.5px] text-ink-3">
                     <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${style.dot}`} />
                     <span className="truncate">{meta}</span>
                   </p>
                 </div>
                 {actionable(event) && (
-                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-slate-600 transition group-hover:text-slate-300" />
+                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-ink-4 transition group-hover:text-ink-2" />
                 )}
               </>
             );
@@ -362,7 +362,7 @@ export function DayBoard({ date, events, today, onOpenEvent }: DayBoardProps) {
                 key={event.id}
                 type="button"
                 onClick={() => onOpenEvent(event)}
-                className="focus-ring group flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-white/[0.03]"
+                className="focus-ring group flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-surface-1"
               >
                 {body}
               </button>

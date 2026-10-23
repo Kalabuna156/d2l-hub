@@ -108,6 +108,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   backgroundImage: null,
   imageDim: 55,
   examBank: true,
+  newOverview: true,
 };
 
 const DEFAULT_CONFIG: AppConfig = {
@@ -179,6 +180,7 @@ function mergePreferences(raw: unknown): Preferences {
     backgroundImage: /^https?:\/\//i.test(image) ? image : null,
     imageDim: Number.isFinite(dim) ? Math.min(100, Math.max(0, Math.round(dim))) : DEFAULT_PREFERENCES.imageDim,
     examBank: typeof input.examBank === 'boolean' ? input.examBank : DEFAULT_PREFERENCES.examBank,
+    newOverview: typeof input.newOverview === 'boolean' ? input.newOverview : DEFAULT_PREFERENCES.newOverview,
   };
 }
 

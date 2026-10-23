@@ -22,21 +22,22 @@ export function ConnectPrompt({
   note,
 }: ConnectPromptProps) {
   return (
-    <div className="panel grid place-items-center px-6 py-14 text-center">
-      <span className="grid h-11 w-11 place-items-center rounded-xl bg-violet-500/[0.12] text-violet-300 ring-1 ring-inset ring-violet-400/20">
-        <Icon className="h-5 w-5" strokeWidth={1.9} />
+    <div className="panel relative grid place-items-center overflow-hidden px-6 py-14 text-center">
+      {/* A pool of light behind the icon, so the empty state has a centre. */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-0 h-40 w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--color-violet-500) 16%, transparent)' }}
+      />
+      <span className="plate relative h-11 w-11">
+        <Icon className="h-[19px] w-[19px]" strokeWidth={1.9} />
       </span>
-      <p className="mt-4 font-display text-[15px] font-semibold text-white">{title}</p>
-      <p className="mt-1.5 max-w-sm text-[12.5px] leading-relaxed text-slate-500">{body}</p>
-      <button
-        type="button"
-        onClick={onAction}
-        className="focus-ring mt-5 inline-flex h-9 items-center gap-1.5 rounded-xl border border-violet-400/30 bg-violet-500/[0.12] px-3.5 text-[12.5px] font-medium text-violet-100 transition hover:border-violet-400/50 hover:bg-violet-500/[0.2] hover:text-white"
-      >
+      <p className="relative mt-4 font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">{title}</p>
+      <p className="relative mt-1.5 max-w-sm text-[12.5px] leading-relaxed text-ink-3">{body}</p>
+      <button type="button" onClick={onAction} className="btn btn-primary focus-ring relative mt-5">
         {actionLabel}
         <ArrowRight className="h-3.5 w-3.5" />
       </button>
-      {note && <p className="mt-3 max-w-sm text-[11px] leading-relaxed text-slate-600">{note}</p>}
+      {note && <p className="relative mt-3 max-w-sm text-[11px] leading-relaxed text-ink-4">{note}</p>}
     </div>
   );
 }

@@ -129,7 +129,7 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-[6px]"
       role="dialog"
       aria-modal="true"
       aria-label="Connect your D2L account"
@@ -137,14 +137,14 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
         if (event.target === event.currentTarget && !waiting) onClose();
       }}
     >
-      <div className="animate-rise w-full max-w-[480px] overflow-hidden rounded-2xl border border-white/[0.09] bg-[var(--chrome-solid)] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.95)]">
-        <div className="flex items-start gap-3 border-b border-white/[0.06] px-5 py-4">
+      <div className="pane-float animate-pop w-full max-w-[480px] overflow-hidden">
+        <div className="flex items-start gap-3 border-b border-line px-5 py-4">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-700 shadow-lg shadow-violet-950/60">
             <Globe className="h-4 w-4 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-[15px] font-semibold text-white">Your D2L connection</h2>
-            <p className="mt-0.5 text-[12px] text-slate-500">
+            <h2 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">Your D2L connection</h2>
+            <p className="mt-0.5 text-[12px] text-ink-3">
               {state?.connected ? 'Signed in. Manage this device’s session below.' : 'Sign in once — the dashboard keeps the session.'}
             </p>
           </div>
@@ -153,7 +153,7 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/10 hover:text-slate-200"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-ink-3 transition hover:bg-white/10 hover:text-ink-1"
             >
               <X className="h-4 w-4" />
             </button>
@@ -167,15 +167,15 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
                 <span className="absolute inset-0 rounded-full border border-violet-400/30" />
                 <Loader2 className="h-6 w-6 animate-spin text-violet-300" />
               </span>
-              <p className="mt-4 text-[13.5px] font-medium text-slate-100">Waiting for you to sign in…</p>
-              <p className="mt-1.5 max-w-[320px] text-[12px] leading-relaxed text-slate-500">{phase.message}</p>
-              <p className="mt-3 rounded-lg bg-white/[0.04] px-3 py-1.5 text-[11px] text-slate-500">
+              <p className="mt-4 text-[13.5px] font-medium text-ink-1">Waiting for you to sign in…</p>
+              <p className="mt-1.5 max-w-[320px] text-[12px] leading-relaxed text-ink-3">{phase.message}</p>
+              <p className="mt-3 rounded-lg bg-surface-1 px-3 py-1.5 text-[11px] text-ink-3">
                 Keep the Chrome window open until this closes.
               </p>
               <button
                 type="button"
                 onClick={cancel}
-                className="focus-ring mt-5 rounded-lg border border-white/10 px-3 py-1.5 text-[12px] text-slate-300 transition hover:border-white/20 hover:bg-white/[0.06]"
+                className="focus-ring mt-5 rounded-lg border border-white/10 px-3 py-1.5 text-[12px] text-ink-2 transition hover:border-white/20 hover:bg-surface-2"
               >
                 Cancel sign-in
               </button>
@@ -183,7 +183,7 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
           ) : (
             <>
               <label className="block">
-                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-3">
                   D2L address
                 </span>
                 <input
@@ -192,7 +192,7 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
                   disabled={busy}
                   placeholder="https://courses.torontomu.ca"
                   spellCheck={false}
-                  className="focus-ring mt-1.5 h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-[13px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40 disabled:opacity-60"
+                  className="focus-ring mt-1.5 h-10 w-full rounded-xl border border-line bg-surface-1 px-3 text-[13px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40 disabled:opacity-60"
                 />
               </label>
 
@@ -215,19 +215,19 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
               <ol className="mt-4 space-y-2">
                 {STEPS.map((step, index) => (
                   <li key={step} className="flex items-start gap-2.5">
-                    <span className="mt-0.5 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full bg-white/[0.06] text-[10px] font-semibold text-slate-400">
+                    <span className="mt-0.5 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full bg-surface-2 text-[10px] font-semibold text-ink-2">
                       {index + 1}
                     </span>
-                    <span className="text-[12px] leading-relaxed text-slate-400">{step}</span>
+                    <span className="text-[12px] leading-relaxed text-ink-2">{step}</span>
                   </li>
                 ))}
               </ol>
 
-              <div className="mt-4 flex items-start gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+              <div className="mt-4 flex items-start gap-2 rounded-lg border border-line bg-surface-1 px-3 py-2.5">
                 <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/80" />
-                <p className="text-[11px] leading-relaxed text-slate-500">
+                <p className="text-[11px] leading-relaxed text-ink-3">
                   Your password never reaches this app. Only a D2L session cookie is saved, on this computer, in{' '}
-                  <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[10px] text-slate-400">.data/</code>.
+                  <code className="rounded bg-surface-2 px-1 py-0.5 font-mono text-[10px] text-ink-2">.data/</code>.
                 </p>
               </div>
 
@@ -236,7 +236,7 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
                   type="button"
                   onClick={begin}
                   disabled={busy || chromeMissing}
-                  className="focus-ring flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-violet-500 to-indigo-600 text-[13px] font-semibold text-white shadow-lg shadow-violet-950/40 transition hover:from-violet-400 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="focus-ring flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-violet-400)_78%,#0b0d16),color-mix(in_srgb,var(--color-violet-600)_92%,#0b0d16))] text-[13px] font-semibold text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-violet-300)_34%,transparent),0_12px_28px_-14px_color-mix(in_srgb,var(--color-violet-500)_95%,transparent),inset_0_1px_0_rgba(255,255,255,0.22)] transition hover:brightness-[1.12] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
                   {state?.connected ? 'Sign in again' : 'Open sign-in window'}
@@ -246,7 +246,7 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
                     type="button"
                     onClick={disconnect}
                     disabled={busy}
-                    className="focus-ring flex h-10 items-center gap-1.5 rounded-xl border border-white/10 px-3 text-[12px] text-slate-300 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
+                    className="focus-ring flex h-10 items-center gap-1.5 rounded-xl border border-white/10 px-3 text-[12px] text-ink-2 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08] hover:text-rose-200 disabled:opacity-60"
                   >
                     <LogOut className="h-3.5 w-3.5" />
                     Sign out
@@ -257,7 +257,7 @@ export function ConnectDialog({ open, state, onClose, onConnected, onDisconnecte
           )}
         </div>
 
-        <div className="flex items-center gap-2 border-t border-white/[0.06] px-5 py-3 text-[11px] text-slate-600">
+        <div className="flex items-center gap-2 border-t border-line px-5 py-3 text-[11px] text-ink-4">
           <Lock className="h-3 w-3" />
           <span>Local only — nothing is uploaded anywhere.</span>
           {state?.connected && (

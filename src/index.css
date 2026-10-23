@@ -2,62 +2,119 @@
 /* Typeset math in AI answers. */
 @import "katex/dist/katex.min.css";
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Aurora glass, rebuilt.
+
+   Two ideas carry the whole interface:
+
+   1. Depth comes from light, not lines. A surface is a pane of glass floating
+      over the aurora: brighter along its top edge, darker at its base, with a
+      soft ambient shadow underneath. Borders are a whisper, not a cage.
+   2. The accent is a spotlight, not paint. Violet (or whatever the user picks)
+      appears on exactly one thing per view — the thing that is active or
+      primary — and it glows. Everything else is neutral ink.
+
+   Nothing here hardcodes a hue: backdrops set the canvas and glows, accents
+   remap the violet ramp, and every component reads the tokens below.
+   ───────────────────────────────────────────────────────────────────────────*/
+
 @theme {
   --font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Cascadia Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  /* Ink: four steps, from headline to footnote. Cool neutrals with a touch of
+     blue so text sits in the same room as the glows instead of reading grey. */
+  --color-ink-1: #f6f8ff;
+  --color-ink-2: #c3ccde;
+  --color-ink-3: #8d97ad;
+  --color-ink-4: #67718a;
+
+  /* Edges: hairlines that fade into the glass instead of outlining it. */
+  --color-line: rgb(255 255 255 / 0.075);
+  --color-line-strong: rgb(255 255 255 / 0.13);
+
+  /* Surfaces: three steps of white haze over the backdrop. */
+  --color-surface-1: rgb(255 255 255 / 0.035);
+  --color-surface-2: rgb(255 255 255 / 0.065);
+  --color-surface-3: rgb(255 255 255 / 0.1);
 }
 
-/* Backdrop presets. Each one sets the page colour, the sticky chrome and three
-   ambient glows, so a theme is a handful of variables rather than new JSX. */
+/* ── Backdrop presets ────────────────────────────────────────────────────────
+   Each preset sets a two-stop canvas, the sticky chrome tint and three ambient
+   glows. The canvas is never flat black: the top of the room catches light and
+   the floor falls away, which is what makes the glass panes read as glass. */
 :root,
 [data-backdrop="aurora"] {
-  --bg-base: #07080d;
-  --chrome: rgb(7 8 13 / 0.55);
-  --chrome-solid: #0a0c13;
-  --glow-1: rgb(109 40 217 / 0.16);
-  --glow-2: rgb(14 165 233 / 0.09);
-  --glow-3: rgb(217 70 239 / 0.06);
+  --bg-base: #06070e;
+  --canvas-top: #0e1428;
+  --canvas-bottom: #05060c;
+  --chrome: rgb(10 12 24 / 0.55);
+  --chrome-solid: #0c101e;
+  /* The lead glow follows the chosen accent, so the room always matches it. */
+  --glow-1: color-mix(in srgb, var(--color-violet-500) 30%, transparent);
+  --glow-2: rgb(14 165 233 / 0.14);
+  --glow-3: rgb(236 72 153 / 0.09);
 }
 
 [data-backdrop="noir"] {
-  --bg-base: #050608;
-  --chrome: rgb(5 6 8 / 0.62);
-  --chrome-solid: #08090c;
-  --glow-1: rgb(148 163 184 / 0.05);
-  --glow-2: rgb(148 163 184 / 0.035);
-  --glow-3: rgb(148 163 184 / 0.025);
+  --bg-base: #05060a;
+  --canvas-top: #10141d;
+  --canvas-bottom: #040508;
+  --chrome: rgb(8 10 15 / 0.6);
+  --chrome-solid: #0b0e15;
+  --glow-1: color-mix(in srgb, var(--color-violet-400) 16%, transparent);
+  --glow-2: rgb(96 118 150 / 0.09);
+  --glow-3: rgb(148 163 184 / 0.045);
 }
 
 [data-backdrop="sunset"] {
-  --bg-base: #120b0d;
-  --chrome: rgb(18 11 13 / 0.56);
-  --chrome-solid: #170e11;
-  --glow-1: rgb(190 24 93 / 0.16);
-  --glow-2: rgb(180 83 9 / 0.13);
-  --glow-3: rgb(244 63 94 / 0.07);
+  --bg-base: #0c0508;
+  --canvas-top: #1d0d13;
+  --canvas-bottom: #0a0507;
+  --chrome: rgb(20 10 14 / 0.55);
+  --chrome-solid: #180d11;
+  --glow-1: rgb(225 29 105 / 0.26);
+  --glow-2: rgb(217 119 6 / 0.18);
+  --glow-3: rgb(244 63 94 / 0.11);
 }
 
 [data-backdrop="ocean"] {
-  --bg-base: #06090f;
-  --chrome: rgb(6 9 15 / 0.56);
-  --chrome-solid: #080d15;
-  --glow-1: rgb(15 118 110 / 0.16);
-  --glow-2: rgb(29 78 216 / 0.14);
-  --glow-3: rgb(6 182 212 / 0.07);
+  --bg-base: #04070d;
+  --canvas-top: #06121c;
+  --canvas-bottom: #03060b;
+  --chrome: rgb(5 12 20 / 0.55);
+  --chrome-solid: #070f18;
+  --glow-1: rgb(13 148 136 / 0.26);
+  --glow-2: rgb(37 99 235 / 0.22);
+  --glow-3: rgb(6 182 212 / 0.1);
 }
 
 [data-backdrop="meadow"] {
-  --bg-base: #070b07;
-  --chrome: rgb(7 11 7 / 0.57);
-  --chrome-solid: #0a0f0a;
-  --glow-1: rgb(21 128 61 / 0.18);
-  --glow-2: rgb(101 163 13 / 0.12);
-  --glow-3: rgb(16 185 129 / 0.06);
+  --bg-base: #040805;
+  --canvas-top: #09150e;
+  --canvas-bottom: #040805;
+  --chrome: rgb(6 14 9 / 0.56);
+  --chrome-solid: #08110b;
+  --glow-1: rgb(22 163 74 / 0.24);
+  --glow-2: rgb(101 163 13 / 0.16);
+  --glow-3: rgb(16 185 129 / 0.09);
 }
 
-/* Accent presets remap the violet ramp the whole UI uses for highlights, so one
-   attribute re-tints every accent surface without touching each component. */
+/* Accent presets remap the violet ramp every accent surface reads, so one
+   attribute re-tints the whole UI without touching a component. Each ramp is
+   tuned a step brighter in the 300s and deeper in the 500/600s than the stock
+   Tailwind scale, which keeps glows luminous without washing out on near-black. */
+[data-accent="violet"] {
+  --color-violet-100: oklch(94.5% 0.032 293);
+  --color-violet-200: oklch(88.5% 0.062 292);
+  --color-violet-300: oklch(81.5% 0.108 291.5);
+  --color-violet-400: oklch(74.5% 0.163 290.5);
+  --color-violet-500: oklch(64.5% 0.212 290);
+  --color-violet-600: oklch(55.5% 0.219 289.5);
+  --color-violet-950: oklch(26% 0.086 291);
+}
+
 [data-accent="sky"] {
   --color-violet-100: oklch(95.1% 0.026 236.824);
   --color-violet-200: oklch(90.1% 0.058 230.902);
@@ -108,6 +165,22 @@
   --color-violet-950: oklch(29.3% 0.136 325.661);
 }
 
+:root {
+  /* Strong curves; the CSS keywords are too weak to feel intentional. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Elevation: a pane catches light on its top edge and casts a long, low,
+     colourless shadow. No black rectangles, no rims. */
+  --pane-highlight: inset 0 1px 0 rgb(255 255 255 / 0.07);
+  --pane-shadow: 0 24px 48px -32px rgb(0 0 0 / 0.85);
+  --float-highlight: inset 0 1px 0 rgb(255 255 255 / 0.1);
+  --float-shadow: 0 40px 80px -32px rgb(0 0 0 / 0.9), 0 2px 8px -2px rgb(0 0 0 / 0.6);
+  --accent-glow: 0 0 0 1px color-mix(in srgb, var(--color-violet-400) 34%, transparent),
+    0 16px 38px -18px color-mix(in srgb, var(--color-violet-500) 78%, transparent);
+}
+
 @layer base {
   :root {
     color-scheme: dark;
@@ -131,19 +204,24 @@
        wallpaper above <html>'s colour, so the sidebar and dialogs sit on it
        too instead of only the content column. */
     background-color: transparent;
-    color: #e6eaf3;
+    color: var(--color-ink-1);
     font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: -0.006em;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-feature-settings: "cv05" 1, "ss01" 1;
   }
 
   ::selection {
-    background: rgba(109, 94, 252, 0.35);
+    background: color-mix(in srgb, var(--color-violet-400) 34%, transparent);
+    color: #fff;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+    scrollbar-color: rgb(255 255 255 / 0.12) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -152,29 +230,273 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgb(255 255 255 / 0.1);
     border-radius: 999px;
     border: 3px solid transparent;
     background-clip: content-box;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgb(255 255 255 / 0.18);
     background-clip: content-box;
+  }
+
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Motion is decoration and never blocks a task. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
+  /* ── Panes ─────────────────────────────────────────────────────────────────
+     .panel is the historical name; it is an alias of .pane so every surface
+     written before the rebuild inherits the new material at once. */
+  .pane,
   .panel {
-    background: rgba(255, 255, 255, 0.028);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 1rem;
+    position: relative;
+    border-radius: 16px;
+    border: 1px solid var(--color-line);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-violet-400) 6%, rgb(255 255 255 / 0.07)) 0%,
+        rgb(255 255 255 / 0.022) 44%,
+        rgb(255 255 255 / 0.042) 100%
+      ),
+      color-mix(in srgb, var(--chrome-solid) 58%, transparent);
+    box-shadow: var(--pane-highlight), var(--pane-shadow);
+    /* Real glass: whatever glow is behind the pane bleeds through it. */
+    backdrop-filter: blur(16px) saturate(1.25);
+    -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  }
+
+  /* A pane that is inset into the surface rather than floating on it. */
+  .pane-flat {
+    position: relative;
+    border-radius: 14px;
+    border: 1px solid var(--color-line);
+    background: rgb(255 255 255 / 0.03);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.035);
+  }
+
+  /* Floating layer: dialogs, popovers, menus. */
+  .pane-float {
+    border-radius: 20px;
+    border: 1px solid var(--color-line-strong);
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.025)),
+      color-mix(in srgb, var(--chrome-solid) 94%, transparent);
+    box-shadow: var(--float-highlight), var(--float-shadow);
+    backdrop-filter: blur(28px) saturate(1.5);
+  }
+
+  /* Glass chrome: the sidebar and the top bar. */
+  .chrome-bar {
+    background: var(--chrome);
+    backdrop-filter: blur(26px) saturate(1.6);
+    -webkit-backdrop-filter: blur(26px) saturate(1.6);
+  }
+
+  /* A hairline that dies out instead of running the full width. */
+  .hairline {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-line-strong) 18%, var(--color-line-strong) 82%, transparent);
+  }
+
+  /* ── Controls ───────────────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 2.25rem;
+    padding-inline: 0.8rem;
+    border-radius: 11px;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface-1);
+    color: var(--color-ink-2);
+    font-size: 12.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.045);
+    transition:
+      transform 140ms var(--ease-out),
+      background-color 160ms var(--ease-out),
+      border-color 160ms var(--ease-out),
+      color 160ms var(--ease-out);
+  }
+
+  .btn:hover {
+    background: var(--color-surface-2);
+    border-color: var(--color-line-strong);
+    color: var(--color-ink-1);
+  }
+
+  .btn:active {
+    transform: scale(0.985);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .btn-sm {
+    height: 1.9rem;
+    padding-inline: 0.65rem;
+    font-size: 11.5px;
+    border-radius: 9px;
+  }
+
+  .btn-primary {
+    border-color: color-mix(in srgb, var(--color-violet-400) 40%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-violet-400) 26%, transparent), color-mix(in srgb, var(--color-violet-600) 18%, transparent)),
+      var(--color-surface-1);
+    color: #fff;
+    box-shadow: var(--pane-highlight), var(--accent-glow);
+  }
+
+  .btn-primary:hover {
+    border-color: color-mix(in srgb, var(--color-violet-300) 58%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-violet-400) 38%, transparent), color-mix(in srgb, var(--color-violet-600) 24%, transparent)),
+      var(--color-surface-1);
+    color: #fff;
+  }
+
+  .btn-icon {
+    height: 2.25rem;
+    width: 2.25rem;
+    padding: 0;
+    border-radius: 11px;
+    color: var(--color-ink-3);
+  }
+
+  .btn-icon:hover {
+    color: var(--color-ink-1);
+  }
+
+  /* Segmented control: a recessed track with a raised thumb. */
+  .seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 11px;
+    border: 1px solid var(--color-line);
+    background: rgb(0 0 0 / 0.24);
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4);
+  }
+
+  .seg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.28rem 0.6rem;
+    border-radius: 8px;
+    color: var(--color-ink-3);
+    font-size: 11.5px;
+    font-weight: 500;
+    transition:
+      color 150ms var(--ease-out),
+      background-color 150ms var(--ease-out),
+      transform 140ms var(--ease-out);
+  }
+
+  .seg-item:hover {
+    color: var(--color-ink-1);
+  }
+
+  .seg-item:active {
+    transform: scale(0.97);
+  }
+
+  .seg-item[data-active="true"] {
+    color: var(--color-ink-1);
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.08));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 1px 2px rgb(0 0 0 / 0.5);
+  }
+
+  /* Text and search fields. */
+  .field {
+    width: 100%;
+    height: 2.25rem;
+    padding-inline: 0.7rem;
+    border-radius: 11px;
+    border: 1px solid var(--color-line);
+    background: rgb(0 0 0 / 0.22);
+    color: var(--color-ink-1);
+    font-size: 12.5px;
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
+    transition:
+      border-color 160ms var(--ease-out),
+      background-color 160ms var(--ease-out),
+      box-shadow 160ms var(--ease-out);
+  }
+
+  .field::placeholder {
+    color: var(--color-ink-4);
+  }
+
+  .field:hover {
+    border-color: var(--color-line-strong);
+  }
+
+  .field:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--color-violet-400) 55%, transparent);
+    background: rgb(0 0 0 / 0.3);
+    box-shadow:
+      inset 0 1px 2px rgb(0 0 0 / 0.35),
+      0 0 0 3px color-mix(in srgb, var(--color-violet-500) 22%, transparent);
+  }
+
+  /* Small status and metadata chips. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: rgb(255 255 255 / 0.05);
+    color: var(--color-ink-3);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  /* Accent marker: an icon plate that anchors a section heading. */
+  .plate {
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-violet-400) 26%, transparent), color-mix(in srgb, var(--color-violet-600) 14%, transparent));
+    color: color-mix(in srgb, var(--color-violet-200) 92%, white);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--color-violet-100) 24%, transparent),
+      0 6px 16px -12px color-mix(in srgb, var(--color-violet-500) 90%, transparent);
   }
 
   .course-grid {
     display: grid;
-    gap: 0.9rem;
-    grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
+    gap: 0.85rem;
+    grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
   }
 
   .focus-ring {
@@ -182,12 +504,14 @@
   }
 
   .focus-ring:focus-visible {
-    box-shadow: 0 0 0 2px #07080d, 0 0 0 4px rgba(139, 125, 255, 0.7);
+    box-shadow:
+      0 0 0 2px var(--bg-base),
+      0 0 0 4px color-mix(in srgb, var(--color-violet-400) 72%, transparent);
   }
 
   /* Announcement bodies arrive as sanitised HTML from D2L. */
   .announcement-body {
-    color: rgb(148 163 184);
+    color: var(--color-ink-3);
     font-size: 12.5px;
     line-height: 1.65;
     overflow-wrap: anywhere;
@@ -219,25 +543,25 @@
 
   .announcement-body strong,
   .announcement-body b {
-    color: rgb(226 232 240);
+    color: var(--color-ink-1);
     font-weight: 600;
   }
 
   .announcement-body a {
-    color: rgb(196 181 253);
+    color: color-mix(in srgb, var(--color-violet-300) 88%, white);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
 
   .announcement-body a:hover {
-    color: rgb(221 214 254);
+    color: color-mix(in srgb, var(--color-violet-200) 92%, white);
   }
 
   .announcement-body h1,
   .announcement-body h2,
   .announcement-body h3,
   .announcement-body h4 {
-    color: rgb(241 245 249);
+    color: var(--color-ink-1);
     font-family: var(--font-display);
     font-size: 13px;
     font-weight: 600;
@@ -258,15 +582,15 @@
 
   .announcement-body th,
   .announcement-body td {
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-line);
     padding: 0.3rem 0.45rem;
     text-align: left;
   }
 
   .announcement-body blockquote {
-    border-left: 2px solid rgba(139, 125, 255, 0.5);
+    border-left: 2px solid color-mix(in srgb, var(--color-violet-400) 45%, transparent);
     padding-left: 0.75rem;
-    color: rgb(148 163 184);
+    color: var(--color-ink-3);
   }
 
   .hide-scrollbar {
@@ -279,14 +603,37 @@
 
   .backdrop-image {
     opacity: var(--backdrop-image-opacity, 0.55);
-    filter: saturate(0.9);
+    filter: saturate(0.92) contrast(1.02);
   }
 }
 
+/* ── Motion ──────────────────────────────────────────────────────────────────
+   Entrances are short, ease-out and interruptible. Only opacity and transform
+   move, so the compositor does the work and a busy page still scrolls at 60fps. */
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.965);
   }
   to {
     opacity: 1;
@@ -300,14 +647,22 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.45;
+    opacity: 0.5;
   }
 }
 
 .animate-rise {
-  animation: rise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: rise 340ms var(--ease-out) both;
+}
+
+.animate-fade {
+  animation: fade 220ms var(--ease-out) both;
+}
+
+.animate-pop {
+  animation: pop 200ms var(--ease-out) both;
 }
 
 .animate-soft-pulse {
-  animation: soft-pulse 1.8s ease-in-out infinite;
+  animation: soft-pulse 2s ease-in-out infinite;
 }

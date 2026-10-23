@@ -82,23 +82,23 @@ export function PdfThumbnail({ doc, pageNumber, active, onSelect }: PdfThumbnail
       aria-label={`Page ${pageNumber}`}
       aria-current={active ? 'page' : undefined}
       className={`group flex w-full flex-col items-center gap-1.5 rounded-lg p-1.5 transition ${
-        active ? 'bg-violet-500/[0.14]' : 'hover:bg-white/[0.05]'
+        active ? 'bg-violet-500/[0.14]' : 'hover:bg-surface-2'
       }`}
     >
       <span
-        className={`relative flex w-full justify-center overflow-hidden rounded border bg-white/[0.04] transition ${
+        className={`relative flex w-full justify-center overflow-hidden rounded border bg-surface-1 transition ${
           active
             ? 'border-violet-400/60 shadow-[0_0_0_1px_rgba(139,92,246,0.25)]'
-            : 'border-white/[0.08] group-hover:border-white/20'
+            : 'border-line group-hover:border-white/20'
         }`}
         style={{ aspectRatio: String(aspect) }}
       >
-        {!ready && <span className="absolute inset-0 animate-pulse bg-white/[0.04]" />}
+        {!ready && <span className="absolute inset-0 animate-pulse bg-surface-1" />}
         {visible && <canvas ref={canvasRef} className="block h-full w-full" />}
       </span>
       <span
         className={`text-[10px] tabular-nums ${
-          active ? 'font-semibold text-violet-200' : 'text-slate-500'
+          active ? 'font-semibold text-violet-200' : 'text-ink-3'
         }`}
       >
         {pageNumber}

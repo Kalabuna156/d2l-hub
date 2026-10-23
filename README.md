@@ -302,6 +302,11 @@ Settings → **Appearance**:
 - **Your own image** — paste a direct `https://…jpg` link and set how strongly it
   shows through; text sits on a dimming layer so it stays readable, and the
   image runs behind the chrome too.
+- **New overview** — the home screen has two arrangements: the new one puts due
+  work and today's classes above a full-width course grid with the session bar
+  underneath, and turning it off brings back the classic two-column layout with
+  Up next and Session in a rail. The layout is picked when the app opens, so
+  the switch offers a restart instead of rearranging the page under you.
 
 Preferences live next to the D2L session in `config.json`, so they survive
 restarts and follow you between runs on the same machine.
@@ -377,10 +382,17 @@ file manager with its readable name, so it can be dragged into a chat or email.
 ### PDF reader
 
 Clicking **View** on a PDF opens it inside the app, without a browser or an
-external viewer. The toolbar has previous/next page, a page-number jump, zoom,
-fit-to-width, rotation, fullscreen, save-a-copy, and **invert colours** for a
-dark version of the page. Arrow keys turn pages, +/- zoom, Escape closes. The
-invert choice is remembered.
+external viewer. Pages are stacked and scroll continuously, so reading is just
+scrolling: the page you are on follows the scrollbar, and the toolbar, the
+thumbnails, drawing, OCR and Ask AI all follow that page. Zooming, fit-to-width
+and rotating keep your place instead of throwing you back to the top. Pages off
+screen give up their bitmaps and redraw when you return, so a 300-page exam does
+not fill memory.
+
+The toolbar has previous/next page, a page-number jump, zoom, fit-to-width,
+rotation, fullscreen, save-a-copy, and **invert colours** for a dark version of
+the page. Left and right arrows turn pages, up/down and Page Up/Down scroll,
++/- zoom, Escape closes. The invert choice is remembered.
 
 The left edge shows page thumbnails, and **Search** (or Ctrl+F) reads the PDF's
 text and jumps between matches.

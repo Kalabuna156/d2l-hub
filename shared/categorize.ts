@@ -167,19 +167,42 @@ export interface SubjectTheme {
   dot: string;
 }
 
+/**
+ * Jewel tones at matched lightness and chroma, so a row of cards reads as a set
+ * of tinted glass plates rather than a bag of sweets. Pastels lose their chroma
+ * when they meet near-black; these are picked for the darkness.
+ */
 const SUBJECT_THEMES: SubjectTheme[] = [
-  { from: '#6d5efc', to: '#3f2bb8', chip: 'text-violet-200 bg-violet-500/15 ring-violet-400/25', dot: '#8b7dff' },
-  { from: '#0ea5e9', to: '#0c4a6e', chip: 'text-sky-200 bg-sky-500/15 ring-sky-400/25', dot: '#38bdf8' },
-  { from: '#14b8a6', to: '#0f3f3a', chip: 'text-teal-200 bg-teal-500/15 ring-teal-400/25', dot: '#2dd4bf' },
-  { from: '#f97316', to: '#7c2d12', chip: 'text-orange-200 bg-orange-500/15 ring-orange-400/25', dot: '#fb923c' },
-  { from: '#ec4899', to: '#831843', chip: 'text-pink-200 bg-pink-500/15 ring-pink-400/25', dot: '#f472b6' },
-  { from: '#22c55e', to: '#14532d', chip: 'text-emerald-200 bg-emerald-500/15 ring-emerald-400/25', dot: '#4ade80' },
-  { from: '#eab308', to: '#713f12', chip: 'text-amber-200 bg-amber-500/15 ring-amber-400/25', dot: '#facc15' },
-  { from: '#8b5cf6', to: '#312e81', chip: 'text-indigo-200 bg-indigo-500/15 ring-indigo-400/25', dot: '#a78bfa' },
+  { from: '#6b63d8', to: '#26205e', chip: 'text-violet-200 bg-violet-500/15 ring-violet-400/25', dot: '#9186ff' },
+  { from: '#3a80cf', to: '#12325c', chip: 'text-sky-200 bg-sky-500/15 ring-sky-400/25', dot: '#6aa9ff' },
+  { from: '#2e9cba', to: '#0c3743', chip: 'text-cyan-200 bg-cyan-500/15 ring-cyan-400/25', dot: '#5ecbe8' },
+  { from: '#269b86', to: '#0b3a32', chip: 'text-teal-200 bg-teal-500/15 ring-teal-400/25', dot: '#4fd7bd' },
+  { from: '#c25378', to: '#401425', chip: 'text-rose-200 bg-rose-500/15 ring-rose-400/25', dot: '#ff8fae' },
+  { from: '#bb57a1', to: '#3c1232', chip: 'text-pink-200 bg-pink-500/15 ring-pink-400/25', dot: '#ef8bd3' },
+  { from: '#9a5cc4', to: '#311847', chip: 'text-purple-200 bg-purple-500/15 ring-purple-400/25', dot: '#c795ef' },
+  { from: '#b4862c', to: '#3a2a08', chip: 'text-amber-200 bg-amber-500/15 ring-amber-400/25', dot: '#f0bd5c' },
+  { from: '#bf7636', to: '#3d2210', chip: 'text-orange-200 bg-orange-500/15 ring-orange-400/25', dot: '#f0a169' },
+  { from: '#8b9542', to: '#2a310f', chip: 'text-lime-200 bg-lime-500/15 ring-lime-400/25', dot: '#c6d47a' },
+  { from: '#5b7391', to: '#1a2634', chip: 'text-slate-200 bg-slate-500/15 ring-slate-400/25', dot: '#9db4cf' },
 ];
 
+/**
+ * Known TMU subject codes get a fixed hue, which keeps neighbouring courses
+ * distinct. A short-string hash piles three-letter codes onto the same index.
+ */
+const SUBJECT_THEME_INDEX: Record<string, number> = {
+  ACC: 7, AER: 10, BIO: 3, BUS: 7, CEN: 10, CHE: 2, CHY: 2, COE: 1, CPS: 0, ECN: 8,
+  ELE: 1, ENG: 4, FIN: 7, GEO: 9, HIS: 7, ITM: 10, LAW: 10, MEC: 10, MKT: 8, MTH: 1,
+  OHS: 10, ORG: 10, PCS: 2, PD: 10, PHL: 6, POL: 9, PSY: 5, QMS: 1, SOC: 9,
+};
+
 export function themeForSubject(subject: string): SubjectTheme {
-  let hash = 0;
-  for (let i = 0; i < subject.length; i += 1) hash = (hash * 31 + subject.charCodeAt(i)) % 100000;
-  return SUBJECT_THEMES[hash % SUBJECT_THEMES.length];
+  const fixed = SUBJECT_THEME_INDEX[subject.toUpperCase()];
+  if (fixed !== undefined) return SUBJECT_THEMES[fixed];
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < subject.length; i += 1) {
+    hash ^= subject.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return SUBJECT_THEMES[(hash >>> 0) % SUBJECT_THEMES.length];
 }

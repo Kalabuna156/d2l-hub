@@ -35,8 +35,8 @@ export function RightRail({
 
       <section className="panel p-4">
         <div className="flex items-center gap-2">
-          <ServerCog className="h-3.5 w-3.5 text-slate-500" />
-          <h2 className="font-display text-[13px] font-semibold text-slate-100">Session</h2>
+          <ServerCog className="h-3.5 w-3.5 text-ink-4" />
+          <h2 className="font-display text-[13px] font-semibold text-ink-1">Session</h2>
           <span
             className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${
               connected
@@ -49,18 +49,18 @@ export function RightRail({
         </div>
         <dl className="mt-3 space-y-2 text-[11.5px]">
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-slate-500">School</dt>
-            <dd className="truncate font-medium text-slate-300" title={baseUrl}>
+            <dt className="text-ink-4">School</dt>
+            <dd className="truncate font-medium text-ink-2" title={baseUrl}>
               {hostLabel(baseUrl)}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-slate-500">Signed in</dt>
-            <dd className="text-slate-300">{savedAt ? new Date(savedAt).toLocaleDateString('en-CA') : '—'}</dd>
+            <dt className="text-ink-4">Signed in</dt>
+            <dd className="text-ink-2">{savedAt ? new Date(savedAt).toLocaleDateString('en-CA') : '—'}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-slate-500">Last sync</dt>
-            <dd className="text-slate-300">{syncTime(fetchedAt)}</dd>
+            <dt className="text-ink-4">Last sync</dt>
+            <dd className="text-ink-2">{syncTime(fetchedAt)}</dd>
           </div>
         </dl>
         <div className="mt-3 flex gap-2">
@@ -78,7 +78,7 @@ export function RightRail({
             type="button"
             onClick={onRefresh}
             disabled={refreshing}
-            className="focus-ring flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] py-1.5 text-[11.5px] font-medium text-slate-300 transition hover:border-white/15 hover:text-white disabled:opacity-60"
+            className="focus-ring flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-line bg-surface-1 py-1.5 text-[11.5px] font-medium text-ink-2 transition hover:border-white/15 hover:text-ink-1 disabled:opacity-60"
           >
             <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
             Sync now
@@ -86,7 +86,7 @@ export function RightRail({
           <button
             type="button"
             onClick={onManage}
-            className="focus-ring rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-[11.5px] font-medium text-slate-300 transition hover:border-white/15 hover:text-white"
+            className="focus-ring rounded-lg border border-line bg-surface-1 px-3 py-1.5 text-[11.5px] font-medium text-ink-2 transition hover:border-white/15 hover:text-ink-1"
           >
             Manage
           </button>

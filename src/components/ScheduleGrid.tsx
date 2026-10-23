@@ -401,20 +401,20 @@ export function ScheduleGrid({
   return (
     <section className={embedded ? 'overflow-hidden' : 'panel overflow-hidden'}>
       {!embedded && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-white/[0.06] px-4 py-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-line px-4 py-3">
           <span className="grid h-6 w-6 place-items-center rounded-md bg-sky-400/15 text-sky-200 ring-1 ring-inset ring-sky-300/25">
             <School className="h-3.5 w-3.5" />
           </span>
-          <h2 className="font-display text-[13px] font-semibold text-slate-100">Class week</h2>
-          <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
+          <h2 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">Class week</h2>
+          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] text-ink-2">
             {layout.blocks.length}
           </span>
           {calendarName && (
-            <span className="hidden truncate text-[11px] text-slate-600 sm:block">· {calendarName}</span>
+            <span className="hidden truncate text-[11px] text-ink-4 sm:block">· {calendarName}</span>
           )}
 
           <div className="ml-auto flex items-center gap-1.5">
-            <span className="hidden items-center gap-1 text-[10.5px] text-slate-600 sm:flex">
+            <span className="hidden items-center gap-1 text-[10.5px] text-ink-4 sm:flex">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/70" />
               Updated {syncTime(fetchedAt)}
             </span>
@@ -423,7 +423,7 @@ export function ScheduleGrid({
               onClick={addDefault}
               aria-label="Add event"
               title="Add an event"
-              className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-slate-200"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-2 hover:text-ink-1"
             >
               <CalendarPlus className="h-3.5 w-3.5" />
             </button>
@@ -433,16 +433,16 @@ export function ScheduleGrid({
               disabled={refreshing}
               aria-label="Sync calendars now"
               title="Sync calendars now"
-              className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-slate-200 disabled:opacity-60"
+              className="focus-ring grid h-7 w-7 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-2 hover:text-ink-1 disabled:opacity-60"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
-            <div className="flex items-center rounded-lg border border-white/[0.07] bg-white/[0.03] p-0.5">
+            <div className="flex items-center rounded-lg border border-line bg-surface-1 p-0.5">
               <button
                 type="button"
                 onClick={() => setWeekStart((current) => addDays(current, -7))}
                 aria-label="Previous week"
-                className="focus-ring grid h-6 w-6 place-items-center rounded-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
+                className="focus-ring grid h-6 w-6 place-items-center rounded-md text-ink-2 transition hover:bg-surface-2 hover:text-white"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
@@ -450,7 +450,7 @@ export function ScheduleGrid({
                 type="button"
                 onClick={() => setWeekStart(startOfWeek(new Date()))}
                 disabled={onCurrentWeek}
-                className="focus-ring rounded-md px-2 text-[10.5px] font-medium text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:text-slate-600 disabled:hover:bg-transparent"
+                className="focus-ring rounded-md px-2 text-[10.5px] font-medium text-ink-2 transition hover:bg-surface-2 hover:text-white disabled:text-ink-4 disabled:hover:bg-transparent"
               >
                 Today
               </button>
@@ -458,7 +458,7 @@ export function ScheduleGrid({
                 type="button"
                 onClick={() => setWeekStart((current) => addDays(current, 7))}
                 aria-label="Next week"
-                className="focus-ring grid h-6 w-6 place-items-center rounded-md text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
+                className="focus-ring grid h-6 w-6 place-items-center rounded-md text-ink-2 transition hover:bg-surface-2 hover:text-white"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
@@ -485,7 +485,7 @@ export function ScheduleGrid({
         {!embedded && (
           <p className="font-display text-[13.5px] font-semibold text-white">{weekLabel(viewedWeek)}</p>
         )}
-        <p className={`text-[10.5px] text-slate-600 ${embedded ? 'ml-auto' : ''}`}>
+        <p className={`text-[10.5px] text-ink-4 ${embedded ? 'ml-auto' : ''}`}>
           {layout.blocks.length === 0
             ? 'No classes — click or drag a free slot to add an event'
             : `${layout.blocks.length} ${layout.blocks.length === 1 ? 'class' : 'classes'} · click or drag free space to add`}
@@ -499,12 +499,12 @@ export function ScheduleGrid({
             const isToday = index === todayIndex;
             return (
               <div key={day.toISOString()} className="flex flex-col items-center gap-1 pb-2">
-                <span className="text-[9.5px] font-medium uppercase tracking-[0.1em] text-slate-500">
+                <span className="text-[9.5px] font-medium uppercase tracking-[0.1em] text-ink-3">
                   {day.toLocaleDateString('en-CA', { weekday: 'short' })}
                 </span>
                 <span
                   className={`grid h-6 w-6 place-items-center rounded-full text-[12px] font-semibold ${
-                    isToday ? 'bg-[#8ab4f8] text-[#0b1220]' : 'text-slate-300'
+                    isToday ? 'bg-violet-400 text-[#0b0f1a] shadow-[0_0_14px_-2px_rgba(139,125,255,0.8)]' : 'text-ink-2'
                   }`}
                 >
                   {day.getDate()}
@@ -524,7 +524,7 @@ export function ScheduleGrid({
               {hours.map((hour) => (
                 <span
                   key={hour}
-                  className="absolute right-2 -translate-y-1/2 text-[9.5px] tabular-nums text-slate-600"
+                  className="absolute right-2 -translate-y-1/2 text-[9.5px] tabular-nums text-ink-4"
                   style={{ top: ((hour * 60 - layout.startMin) / 60) * HOUR_HEIGHT }}
                 >
                   {hourLabel(hour)}
@@ -567,15 +567,15 @@ export function ScheduleGrid({
                     if (dragRef.current || blockDragRef.current) return;
                     setHover((current) => (current?.day === key ? null : current));
                   }}
-                  className={`relative cursor-pointer border-l border-white/[0.055] transition hover:bg-white/[0.015] ${
-                    dayIndex === todayIndex ? 'bg-[#8ab4f8]/[0.035]' : ''
+                  className={`relative cursor-pointer border-l border-line transition hover:bg-white/[0.02] ${
+                    dayIndex === todayIndex ? 'bg-violet-400/[0.035]' : ''
                   }`}
                   style={{ height: layout.height }}
                 >
                   {hours.map((hour) => (
                     <div
                       key={hour}
-                      className="pointer-events-none absolute inset-x-0 border-t border-white/[0.045]"
+                      className="pointer-events-none absolute inset-x-0 border-t border-line"
                       style={{ top: ((hour * 60 - layout.startMin) / 60) * HOUR_HEIGHT }}
                     />
                   ))}
@@ -646,12 +646,12 @@ export function ScheduleGrid({
                       ]
                         .filter(Boolean)
                         .join(' · ');
-                      const blockClass = `focus-ring absolute overflow-hidden rounded-[5px] px-1.5 py-1 text-left shadow-sm shadow-black/30 transition ${
+                      const blockClass = `focus-ring absolute overflow-hidden rounded-[7px] border-l-2 px-1.5 py-1 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_8px_18px_-14px_rgba(0,0,0,0.9)] transition-[background-color,border-color,transform] duration-150 ease-[var(--ease-out)] ${
                         movable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
                       } ${isMoving ? 'opacity-25' : ''} ${
                         event.source === 'local'
-                          ? 'border border-dashed border-white/40 bg-violet-400 text-[#0b0f1a] hover:bg-violet-300'
-                          : 'bg-[#8ab4f8] text-[#0b1220] hover:bg-[#a4c6fb]'
+                          ? 'border-violet-400 bg-violet-500/[0.22] text-violet-50 hover:bg-violet-500/[0.3]'
+                          : 'border-sky-400 bg-sky-500/[0.18] text-sky-50 hover:bg-sky-500/[0.26]'
                       }`;
                       const style = {
                         top: block.top,
@@ -745,8 +745,8 @@ export function ScheduleGrid({
       </div>
 
       {hiddenThisWeek.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.06] px-4 py-2.5">
-          <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-600">
+        <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-2.5">
+          <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-4">
             Hidden this week
           </span>
           {hiddenThisWeek.map((event) => (
@@ -755,17 +755,17 @@ export function ScheduleGrid({
               type="button"
               onClick={() => onEdit(event)}
               title="Click to show or edit"
-              className="focus-ring rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[10.5px] text-slate-500 transition hover:border-white/20 hover:text-slate-200"
+              className="focus-ring rounded-full border border-line bg-surface-1 px-2 py-0.5 text-[10.5px] text-ink-3 transition hover:border-white/20 hover:text-ink-1"
             >
               <span className="line-through">{event.title}</span>
-              <span className="ml-1.5 text-slate-600">
+              <span className="ml-1.5 text-ink-4">
                 {event.startsAt
                   ? new Date(event.startsAt).toLocaleDateString('en-CA', { weekday: 'short' })
                   : ''}
               </span>
             </button>
           ))}
-          <span className="text-[10.5px] text-slate-600">click to restore</span>
+          <span className="text-[10.5px] text-ink-4">click to restore</span>
         </div>
       )}
     </section>

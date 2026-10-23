@@ -133,24 +133,24 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-[19px] font-semibold tracking-tight text-white">
+          <h2 className="font-display text-[20px] font-semibold tracking-[-0.026em] text-ink-1">
             {activeBank.name}
           </h2>
-          <p className="mt-1 text-[12.5px] text-slate-500">
+          <p className="mt-1 text-[12.5px] text-ink-3">
             {activeBank.builtin
               ? 'Toronto Metropolitan engineering exams, browsed here. No Google account needed.'
               : 'A Drive folder you added, browsed here. No Google account needed.'}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden rounded-full border border-white/[0.07] bg-white/[0.03] px-2.5 py-1 text-[10.5px] text-slate-500 sm:block">
+          <span className="hidden rounded-full border border-line bg-surface-1 px-2.5 py-1 text-[10.5px] text-ink-3 sm:block">
             Public Drive folder
           </span>
           <button
             type="button"
             onClick={() => void load(currentFolderId, current.id === '')}
             aria-label="Refresh exam bank"
-            className="focus-ring grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-slate-400 transition hover:border-white/20 hover:text-white"
+            className="focus-ring grid h-8 w-8 place-items-center rounded-lg border border-line bg-surface-1 text-ink-2 transition hover:border-white/20 hover:text-white"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -159,7 +159,7 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
             target="_blank"
             rel="noreferrer"
             title="Open this folder on Google Drive"
-            className="focus-ring grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-slate-400 transition hover:border-white/20 hover:text-white"
+            className="focus-ring grid h-8 w-8 place-items-center rounded-lg border border-line bg-surface-1 text-ink-2 transition hover:border-white/20 hover:text-white"
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
@@ -181,7 +181,7 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
                 className={`focus-ring inline-flex max-w-[220px] items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11.5px] font-medium transition ${
                   active
                     ? 'border-amber-400/30 bg-amber-400/[0.1] text-amber-100'
-                    : 'border-white/[0.08] bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-200'
+                    : 'border-line bg-surface-1 text-ink-2 hover:border-white/20 hover:text-ink-1'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -192,12 +192,12 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-1 rounded-xl border border-white/[0.07] bg-white/[0.03] px-2 py-1.5">
+      <div className="flex flex-wrap items-center gap-1 rounded-xl border border-line bg-surface-1 px-2 py-1.5">
         {stack.map((crumb, index) => {
           const last = index === stack.length - 1;
           return (
             <span key={`${crumb.id}-${index}`} className="flex items-center gap-1">
-              {index > 0 && <ChevronRight className="h-3 w-3 text-slate-600" />}
+              {index > 0 && <ChevronRight className="h-3 w-3 text-ink-4" />}
               <button
                 type="button"
                 onClick={() => goTo(index)}
@@ -205,7 +205,7 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
                 className={`focus-ring flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11.5px] transition ${
                   last
                     ? 'font-medium text-white'
-                    : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-200'
+                    : 'text-ink-2 hover:bg-surface-2 hover:text-ink-1'
                 }`}
               >
                 {index === 0 && <Home className="h-3 w-3" />}
@@ -245,18 +245,18 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
       )}
 
       <section className="panel overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <span className="grid h-6 w-6 place-items-center rounded-md bg-amber-400/15 text-amber-300 ring-1 ring-inset ring-amber-400/20">
             <FolderOpen className="h-3.5 w-3.5" />
           </span>
-          <h3 className="font-display text-[13px] font-semibold text-slate-100">{current.name}</h3>
+          <h3 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">{current.name}</h3>
           {folder && (
-            <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
+            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] text-ink-2">
               {folder.entries.length}
             </span>
           )}
           {folder && (
-            <span className="ml-auto text-[10.5px] text-slate-600">
+            <span className="ml-auto text-[10.5px] text-ink-4">
               Updated{' '}
               {new Date(folder.fetchedAt).toLocaleTimeString('en-CA', {
                 hour: 'numeric',
@@ -267,17 +267,17 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-2 px-4 py-14 text-[12px] text-slate-500">
+          <div className="flex items-center justify-center gap-2 px-4 py-14 text-[12px] text-ink-3">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             Opening the folder…
           </div>
         ) : !folder || folder.entries.length === 0 ? (
           <div className="px-6 py-14 text-center">
-            <p className="text-[13px] text-slate-400">This folder is empty.</p>
-            <p className="mt-1 text-[11.5px] text-slate-600">Pick another folder above.</p>
+            <p className="text-[13px] text-ink-2">This folder is empty.</p>
+            <p className="mt-1 text-[11.5px] text-ink-4">Pick another folder above.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-white/[0.055]">
+          <ul className="divide-y divide-line">
             {folder.entries.map((entry) => {
               const isFolder = entry.kind === 'folder';
               const isSaved = saved[entry.id];
@@ -288,7 +288,7 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
                   className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border ${
                     isFolder
                       ? 'border-amber-400/15 bg-amber-400/[0.07] text-amber-300'
-                      : 'border-white/[0.07] bg-white/[0.04] text-slate-400'
+                      : 'border-line bg-surface-1 text-ink-2'
                   }`}
                 >
                   {isFolder ? <Folder className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
@@ -297,8 +297,8 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
 
               const label = (
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12.5px] font-medium text-slate-200">{entry.name}</p>
-                  <p className="mt-0.5 truncate text-[10.5px] text-slate-500">
+                  <p className="truncate text-[12.5px] font-medium text-ink-1">{entry.name}</p>
+                  <p className="mt-0.5 truncate text-[10.5px] text-ink-3">
                     {entry.type}
                     {entry.modifiedAt ? ` · ${entry.modifiedAt}` : ''}
                     {isSaved ? ' · saved to Content Space' : ''}
@@ -314,11 +314,11 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
                       type="button"
                       onClick={() => openFolder(entry)}
                       aria-label={`Open ${entry.name}`}
-                      className="focus-ring group flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-white/[0.035]"
+                      className="focus-ring group flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-surface-1"
                     >
                       {badge}
                       {label}
-                      <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-slate-500 transition group-hover:text-slate-200">
+                      <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-ink-3 transition group-hover:text-ink-1">
                         Open
                         <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                       </span>
@@ -328,7 +328,7 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
               }
 
               return (
-                <li key={entry.id} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.025]">
+                <li key={entry.id} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03]">
                   {badge}
                   {label}
 
@@ -347,7 +347,7 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
                       type="button"
                       onClick={() => void save(entry)}
                       disabled={busy}
-                      className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-slate-300 transition hover:border-violet-400/30 hover:bg-violet-500/[0.1] hover:text-violet-100 disabled:opacity-50"
+                      className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2.5 py-1.5 text-[11px] font-medium text-ink-2 transition hover:border-violet-400/30 hover:bg-violet-500/[0.1] hover:text-violet-100 disabled:opacity-50"
                     >
                       {busy ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -364,7 +364,7 @@ export function ExamBank({ banks, onSaved, ai = null, onOpenSettings }: ExamBank
         )}
       </section>
 
-      <p className="text-center text-[10.5px] leading-relaxed text-slate-600">
+      <p className="text-center text-[10.5px] leading-relaxed text-ink-4">
         {activeBank.builtin
           ? 'The MUES exam bank is a public Google Drive folder run by the society.'
           : `“${activeBank.name}” is a Google Drive folder you added in Settings.`}{' '}

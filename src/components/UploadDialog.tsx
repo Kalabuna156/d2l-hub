@@ -171,15 +171,15 @@ export function UploadDialog({
   const total = files.reduce((sum, file) => sum + file.size, 0);
 
   return (
-    <div className="fixed inset-0 z-[90] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Add your own files">
+    <div className="fixed inset-0 z-[90] grid place-items-center bg-black/60 p-4 backdrop-blur-[6px]" role="dialog" aria-modal="true" aria-label="Add your own files">
       <div className="panel w-full max-w-lg overflow-hidden">
-        <div className="flex items-start gap-3 border-b border-white/[0.06] px-5 py-4">
+        <div className="flex items-start gap-3 border-b border-line px-5 py-4">
           <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-500/12 text-violet-300 ring-1 ring-inset ring-violet-400/20">
             <FilePlus2 className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-[15px] font-semibold tracking-tight text-white">Add your own files</h2>
-            <p className="mt-0.5 text-[11.5px] leading-relaxed text-slate-500">
+            <h2 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">Add your own files</h2>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-ink-3">
               Papers from another class, a friend’s notes, a scanned midterm — they sit in the course you pick, grouped
               by unit like everything else.
             </p>
@@ -189,7 +189,7 @@ export function UploadDialog({
             onClick={onClose}
             disabled={busy}
             aria-label="Close"
-            className="focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-white disabled:opacity-40"
+            className="focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-2 hover:text-white disabled:opacity-40"
           >
             <X className="h-4 w-4" />
           </button>
@@ -197,12 +197,12 @@ export function UploadDialog({
 
         <div className="space-y-4 px-5 py-4">
           <label className="block">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Course</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">Course</span>
             <select
               value={target}
               onChange={(event) => setTarget(event.target.value)}
               disabled={busy}
-              className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-white/[0.08] bg-[#12131a] px-2.5 text-[12.5px] text-slate-200 transition focus:border-violet-400/40"
+              className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-line bg-[#12131a] px-2.5 text-[12.5px] text-ink-1 transition focus:border-violet-400/40"
             >
               {options.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -215,36 +215,36 @@ export function UploadDialog({
 
           {target === 'new' && (
             <label className="block">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Course name</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">Course name</span>
               <input
                 value={newName}
                 onChange={(event) => setNewName(event.target.value)}
                 disabled={busy}
                 autoFocus
                 placeholder="e.g. CHEM 222 — extra practice"
-                className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 text-[12.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40"
+                className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-line bg-surface-1 px-2.5 text-[12.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40"
               />
             </label>
           )}
 
           <label className="block">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-              Unit or folder <span className="normal-case tracking-normal text-slate-600">(optional)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">
+              Unit or folder <span className="normal-case tracking-normal text-ink-4">(optional)</span>
             </span>
             <input
               value={folder}
               onChange={(event) => setFolder(event.target.value)}
               disabled={busy}
               placeholder="e.g. Unit 3"
-              className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 text-[12.5px] text-slate-200 placeholder:text-slate-600 transition focus:border-violet-400/40"
+              className="focus-ring mt-1.5 h-9 w-full rounded-lg border border-line bg-surface-1 px-2.5 text-[12.5px] text-ink-1 placeholder:text-ink-4 transition focus:border-violet-400/40"
             />
-            <span className="mt-1 block text-[10.5px] text-slate-600">
+            <span className="mt-1 block text-[10.5px] text-ink-4">
               Where the files are filed, even if their names mention another unit.
             </span>
           </label>
 
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Files</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">Files</span>
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
@@ -262,16 +262,16 @@ export function UploadDialog({
               className={`focus-ring mt-1.5 flex w-full flex-col items-center gap-1.5 rounded-xl border border-dashed px-4 py-6 text-center transition ${
                 dragging
                   ? 'border-violet-400/50 bg-violet-500/[0.08]'
-                  : 'border-white/[0.12] bg-white/[0.02] hover:border-white/25'
+                  : 'border-line-strong bg-surface-1 hover:border-white/25'
               }`}
             >
-              <Upload className="h-4 w-4 text-slate-400" />
-              <span className="text-[12px] text-slate-300">
+              <Upload className="h-4 w-4 text-ink-2" />
+              <span className="text-[12px] text-ink-2">
                 {files.length === 0
                   ? 'Drop files here or click to choose'
                   : `${files.length} ${files.length === 1 ? 'file' : 'files'} · ${formatSize(total)}`}
               </span>
-              <span className="text-[10.5px] text-slate-600">PDF, Word, PowerPoint, images · 150 MB each</span>
+              <span className="text-[10.5px] text-ink-4">PDF, Word, PowerPoint, images · 150 MB each</span>
             </button>
             <input
               ref={inputRef}
@@ -289,16 +289,16 @@ export function UploadDialog({
                 {files.map((file) => (
                   <li
                     key={`${file.name}-${file.size}`}
-                    className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-2.5 py-1.5 text-[11px] text-slate-400"
+                    className="flex items-center gap-2 rounded-lg bg-surface-1 px-2.5 py-1.5 text-[11px] text-ink-2"
                   >
                     <span className="min-w-0 flex-1 truncate">{file.name}</span>
-                    <span className="shrink-0 text-slate-600">{formatSize(file.size)}</span>
+                    <span className="shrink-0 text-ink-4">{formatSize(file.size)}</span>
                     {!busy && (
                       <button
                         type="button"
                         onClick={() => setFiles((current) => current.filter((entry) => entry !== file))}
                         aria-label={`Remove ${file.name}`}
-                        className="focus-ring grid h-5 w-5 place-items-center rounded text-slate-500 hover:bg-white/10 hover:text-white"
+                        className="focus-ring grid h-5 w-5 place-items-center rounded text-ink-3 hover:bg-white/10 hover:text-white"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -317,14 +317,14 @@ export function UploadDialog({
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] px-5 py-3">
-          <span className="text-[11px] text-slate-600">Saved on this computer only.</span>
+        <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-3">
+          <span className="text-[11px] text-ink-4">Saved on this computer only.</span>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
               disabled={busy}
-              className="focus-ring rounded-lg border border-white/10 px-3 py-1.5 text-[12px] text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-40"
+              className="focus-ring rounded-lg border border-white/10 px-3 py-1.5 text-[12px] text-ink-2 transition hover:bg-surface-2 disabled:opacity-40"
             >
               Cancel
             </button>

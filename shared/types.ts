@@ -347,6 +347,8 @@ export interface Preferences {
   imageDim: number;
   /** Show the MUES exam bank section */
   examBank: boolean;
+  /** The redesigned Overview. Read once per launch: changing it needs a restart. */
+  newOverview: boolean;
 }
 
 /** A file downloaded into Content Space, either from D2L or the exam bank. */

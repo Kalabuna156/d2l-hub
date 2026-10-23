@@ -52,7 +52,7 @@ function formatAnnouncementDate(iso: string | null): string {
 
 function dueTone(assignment: Assignment): { label: string; className: string } {
   if (!assignment.dueAt) {
-    return { label: assignment.dueLabel ?? 'No due date', className: 'text-slate-500' };
+    return { label: assignment.dueLabel ?? 'No due date', className: 'text-ink-3' };
   }
   const time = new Date(assignment.dueAt).getTime();
   const now = Date.now();
@@ -67,7 +67,7 @@ function dueTone(assignment: Assignment): { label: string; className: string } {
   }
   return {
     label: `${relativeLabel(assignment.dueAt)} · ${timeLabel(assignment.dueAt)}`,
-    className: 'text-slate-400',
+    className: 'text-ink-2',
   };
 }
 
@@ -145,7 +145,7 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
       <button
         type="button"
         onClick={onBack}
-        className="focus-ring inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-[12px] font-medium text-slate-400 transition hover:text-white"
+        className="focus-ring inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-[12px] font-medium text-ink-2 transition hover:text-white"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         All courses
@@ -165,13 +165,13 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
               {info.initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-slate-500">
+              <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-3">
                 {course.code || 'D2L'}
               </p>
-              <h2 className="mt-1 font-display text-[21px] font-semibold leading-tight tracking-tight text-white sm:text-[23px]">
+              <h2 className="mt-1 font-display text-[22px] font-semibold leading-tight tracking-[-0.03em] text-ink-1 sm:text-[24px]">
                 {course.name}
               </h2>
-              <p className="mt-1 text-[12px] text-slate-400">
+              <p className="mt-1 text-[12px] text-ink-2">
                 {info.subjectLabel}
                 {info.number ? ` · ${info.number}` : ''} · {info.termLabel}
                 {info.kind === 'resource' ? ' · Resource' : ''}
@@ -186,7 +186,7 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
                   void load(true);
                 }}
                 disabled={refreshing || loading}
-                className="focus-ring grid h-9 w-9 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-slate-400 transition hover:border-white/15 hover:bg-white/[0.07] hover:text-white disabled:opacity-60"
+                className="focus-ring grid h-9 w-9 place-items-center rounded-xl border border-line bg-surface-1 text-ink-2 transition hover:border-white/15 hover:bg-surface-2 hover:text-white disabled:opacity-60"
                 aria-label="Refresh this course"
               >
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -203,11 +203,11 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
                   href={link.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5 text-[11.5px] font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                  className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2.5 py-1.5 text-[11.5px] font-medium text-ink-2 transition hover:border-white/20 hover:bg-surface-2 hover:text-white"
                 >
-                  <Icon className="h-3.5 w-3.5 text-slate-500" strokeWidth={1.8} />
+                  <Icon className="h-3.5 w-3.5 text-ink-3" strokeWidth={1.8} />
                   {link.label}
-                  <ExternalLink className="h-3 w-3 text-slate-600" />
+                  <ExternalLink className="h-3 w-3 text-ink-4" />
                 </a>
               );
             })}
@@ -218,7 +218,7 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
       <div
         role="tablist"
         aria-label="Course sections"
-        className="flex w-full gap-1 overflow-x-auto rounded-xl border border-white/[0.07] bg-white/[0.03] p-1 sm:w-auto sm:self-start"
+        className="flex w-full gap-1 overflow-x-auto rounded-xl border border-line bg-surface-1 p-1 sm:w-auto sm:self-start"
       >
         {TABS.map((entry) => {
           const Icon = entry.icon;
@@ -232,11 +232,11 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
               onClick={() => setTab(entry.id)}
               className={`focus-ring flex flex-1 items-center justify-center gap-1.5 rounded-[9px] px-3 py-1.5 text-[12px] font-medium transition sm:flex-none ${
                 active
-                  ? 'bg-white/[0.09] text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-surface-2 text-white shadow-sm'
+                  : 'text-ink-2 hover:text-ink-1'
               }`}
             >
-              <Icon className={`h-3.5 w-3.5 ${active ? 'text-violet-300' : 'text-slate-500'}`} />
+              <Icon className={`h-3.5 w-3.5 ${active ? 'text-violet-300' : 'text-ink-3'}`} />
               {entry.label}
             </button>
           );
@@ -271,11 +271,11 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
             <AlertTriangle className="h-5 w-5" />
           </span>
           <h3 className="mt-4 font-display text-base font-semibold text-white">Couldn’t open this course</h3>
-          <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-500">{error}</p>
+          <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-3">{error}</p>
           <button
             type="button"
             onClick={() => void load(true)}
-            className="focus-ring mx-auto mt-5 flex items-center gap-2 rounded-xl bg-white/[0.08] px-3.5 py-2 text-[12.5px] font-medium text-white transition hover:bg-white/[0.13]"
+            className="focus-ring mx-auto mt-5 flex items-center gap-2 rounded-xl bg-surface-2 px-3.5 py-2 text-[12.5px] font-medium text-white transition hover:bg-surface-3"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Try again
@@ -285,29 +285,29 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-5">
             <section className="panel overflow-hidden">
-              <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+              <div className="flex items-center gap-2 border-b border-line px-4 py-3">
                 <span className="grid h-6 w-6 place-items-center rounded-md bg-sky-500/15 text-sky-300 ring-1 ring-inset ring-sky-400/20">
                   <Megaphone className="h-3.5 w-3.5" />
                 </span>
-                <h3 className="font-display text-[13px] font-semibold text-slate-100">Announcements</h3>
-                <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
+                <h3 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">Announcements</h3>
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] text-ink-2">
                   {detail?.announcements.length ?? 0}
                 </span>
               </div>
 
               {loading ? (
                 <div className="space-y-3 px-4 py-4">
-                  <div className="h-24 animate-pulse rounded-xl bg-white/[0.03]" />
+                  <div className="h-24 animate-pulse rounded-xl bg-surface-1" />
                 </div>
               ) : (detail?.announcements.length ?? 0) === 0 ? (
                 <div className="px-4 py-10 text-center">
-                  <p className="text-[13px] text-slate-400">No announcements yet.</p>
-                  <p className="mt-1 text-[11.5px] text-slate-600">
+                  <p className="text-[13px] text-ink-2">No announcements yet.</p>
+                  <p className="mt-1 text-[11.5px] text-ink-4">
                     Course staff posts appear here as soon as D2L reports them.
                   </p>
                 </div>
               ) : (
-                <ul className="divide-y divide-white/[0.055]">
+                <ul className="divide-y divide-line">
                   {detail?.announcements.map((announcement) => (
                     <li key={announcement.id} className="px-4 py-4">
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -315,12 +315,12 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
                           href={announcement.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="focus-ring text-[13.5px] font-semibold leading-snug text-slate-100 transition hover:text-white"
+                          className="focus-ring text-[13.5px] font-semibold leading-snug text-ink-1 transition hover:text-white"
                         >
                           {announcement.title}
                         </a>
                         {announcement.publishedAt && (
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-[11px] text-ink-3">
                             · {formatAnnouncementDate(announcement.publishedAt)}
                           </span>
                         )}
@@ -346,16 +346,16 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
             </section>
 
             <section className="panel overflow-hidden">
-              <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+              <div className="flex items-center gap-2 border-b border-line px-4 py-3">
                 <span className="grid h-6 w-6 place-items-center rounded-md bg-amber-400/15 text-amber-300 ring-1 ring-inset ring-amber-400/20">
                   <ClipboardList className="h-3.5 w-3.5" />
                 </span>
-                <h3 className="font-display text-[13px] font-semibold text-slate-100">Work to do</h3>
-                <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
+                <h3 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">Work to do</h3>
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] text-ink-2">
                   {assignments.length}
                 </span>
                 {upcomingCount > 0 && (
-                  <span className="ml-auto text-[10.5px] uppercase tracking-[0.12em] text-slate-600">
+                  <span className="ml-auto text-[10.5px] uppercase tracking-[0.12em] text-ink-4">
                     {upcomingCount} upcoming
                   </span>
                 )}
@@ -364,18 +364,18 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
               {loading ? (
                 <div className="space-y-2 px-4 py-4">
                   {[0, 1, 2].map((row) => (
-                    <div key={row} className="h-10 animate-pulse rounded-lg bg-white/[0.03]" />
+                    <div key={row} className="h-10 animate-pulse rounded-lg bg-surface-1" />
                   ))}
                 </div>
               ) : assignments.length === 0 ? (
                 <div className="px-4 py-10 text-center">
-                  <p className="text-[13px] text-slate-400">Nothing due in this course.</p>
-                  <p className="mt-1 text-[11.5px] text-slate-600">
+                  <p className="text-[13px] text-ink-2">Nothing due in this course.</p>
+                  <p className="mt-1 text-[11.5px] text-ink-4">
                     Assignments with due dates show up here.
                   </p>
                 </div>
               ) : (
-                <ul className="divide-y divide-white/[0.055]">
+                <ul className="divide-y divide-line">
                   {assignments.map((assignment) => {
                     const due = dueTone(assignment);
                     return (
@@ -384,24 +384,24 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
                           href={assignment.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="focus-ring group flex items-start gap-3 px-4 py-3 transition hover:bg-white/[0.03]"
+                          className="focus-ring group flex items-start gap-3 px-4 py-3 transition hover:bg-surface-1"
                         >
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-600 group-hover:bg-violet-400" />
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ink-4 group-hover:bg-violet-400" />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-[12.5px] font-medium text-slate-200 transition group-hover:text-white">
+                            <p className="truncate text-[12.5px] font-medium text-ink-1 transition group-hover:text-white">
                               {assignment.name}
                             </p>
-                            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+                            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-3">
                               <span className={due.className}>{due.label}</span>
                               {assignment.category && (
                                 <>
-                                  <span className="text-slate-700">·</span>
+                                  <span className="text-ink-4">·</span>
                                   <span className="truncate">{assignment.category}</span>
                                 </>
                               )}
                               {assignment.status && (
                                 <>
-                                  <span className="text-slate-700">·</span>
+                                  <span className="text-ink-4">·</span>
                                   <span className="truncate">{assignment.status}</span>
                                 </>
                               )}
@@ -423,19 +423,19 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
 
           <div className="space-y-5">
             <section className="panel overflow-hidden">
-              <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+              <div className="flex items-center gap-2 border-b border-line px-4 py-3">
                 <span className="grid h-6 w-6 place-items-center rounded-md bg-violet-500/15 text-violet-300 ring-1 ring-inset ring-violet-400/20">
                   <CalendarClock className="h-3.5 w-3.5" />
                 </span>
-                <h3 className="font-display text-[13px] font-semibold text-slate-100">Dates</h3>
+                <h3 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">Dates</h3>
               </div>
 
               {events.length === 0 ? (
-                <p className="px-4 py-8 text-center text-[12px] text-slate-500">
+                <p className="px-4 py-8 text-center text-[12px] text-ink-3">
                   No dates on this month’s calendar.
                 </p>
               ) : (
-                <ul className="divide-y divide-white/[0.055]">
+                <ul className="divide-y divide-line">
                   {events.slice(0, 6).map((event) => {
                     const date = shortDateParts(event.startsAt);
                     return (
@@ -444,19 +444,19 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
                           href={event.url ?? undefined}
                           target="_blank"
                           rel="noreferrer"
-                          className="focus-ring flex items-center gap-3 px-4 py-2.5 transition hover:bg-white/[0.03]"
+                          className="focus-ring flex items-center gap-3 px-4 py-2.5 transition hover:bg-surface-1"
                         >
-                          <div className="grid w-9 shrink-0 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.04] py-1 leading-none">
-                            <span className="text-[9px] font-semibold tracking-[0.1em] text-slate-500">
+                          <div className="grid w-9 shrink-0 place-items-center rounded-lg border border-line bg-surface-1 py-1 leading-none">
+                            <span className="text-[9px] font-semibold tracking-[0.1em] text-ink-3">
                               {date.month}
                             </span>
-                            <span className="mt-0.5 font-display text-[14px] font-semibold text-slate-100">
+                            <span className="mt-0.5 font-display text-[14px] font-semibold text-ink-1">
                               {date.day}
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <p className="line-clamp-2 text-[12px] leading-snug text-slate-300">{event.title}</p>
-                            <p className="mt-0.5 text-[10.5px] text-slate-500">
+                            <p className="line-clamp-2 text-[12px] leading-snug text-ink-2">{event.title}</p>
+                            <p className="mt-0.5 text-[10.5px] text-ink-3">
                               {timeLabel(event.startsAt) || event.whenLabel || 'No time'}
                               {' · '}
                               {relativeLabel(event.startsAt)}
@@ -471,34 +471,34 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
             </section>
 
             <section className="panel px-4 py-4">
-              <h3 className="font-display text-[13px] font-semibold text-slate-100">At a glance</h3>
+              <h3 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">At a glance</h3>
               <dl className="mt-3 space-y-2 text-[12px]">
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-slate-500">Enrollment code</dt>
-                  <dd className="truncate font-mono text-[11px] text-slate-300">{course.code || '—'}</dd>
+                  <dt className="text-ink-3">Enrollment code</dt>
+                  <dd className="truncate font-mono text-[11px] text-ink-2">{course.code || '—'}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-slate-500">Term</dt>
-                  <dd className="text-slate-300">{info.termLabel}</dd>
+                  <dt className="text-ink-3">Term</dt>
+                  <dd className="text-ink-2">{info.termLabel}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-slate-500">Subject</dt>
-                  <dd className="text-slate-300">{info.subjectLabel}</dd>
+                  <dt className="text-ink-3">Subject</dt>
+                  <dd className="text-ink-2">{info.subjectLabel}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-slate-500">Announcements</dt>
-                  <dd className="text-slate-300">{detail?.announcements.length ?? 0}</dd>
+                  <dt className="text-ink-3">Announcements</dt>
+                  <dd className="text-ink-2">{detail?.announcements.length ?? 0}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-slate-500">Assignments</dt>
-                  <dd className="text-slate-300">{assignments.length}</dd>
+                  <dt className="text-ink-3">Assignments</dt>
+                  <dd className="text-ink-2">{assignments.length}</dd>
                 </div>
               </dl>
               <a
                 href={course.url}
                 target="_blank"
                 rel="noreferrer"
-                className="focus-ring mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-[12px] font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                className="focus-ring mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-line bg-surface-1 px-3 py-2 text-[12px] font-medium text-ink-2 transition hover:border-white/20 hover:bg-surface-2 hover:text-white"
               >
                 Open course in D2L
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -506,7 +506,7 @@ export function CoursePage({ course, onBack }: CoursePageProps) {
             </section>
 
             {refreshing && !loading && (
-              <p className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
+              <p className="flex items-center justify-center gap-1.5 text-[11px] text-ink-3">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 Refreshing from D2L…
               </p>

@@ -213,10 +213,10 @@ export function ContentSpace({
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-[19px] font-semibold tracking-tight text-white">
-            {shelf ? shelf.name : 'Content Space'}
+          <h2 className="font-display text-[20px] font-semibold tracking-[-0.026em] text-ink-1">
+            {shelf ? shelf.name : 'Saved files'}
           </h2>
-          <p className="mt-1 text-[12.5px] text-slate-500">
+          <p className="mt-1 text-[12.5px] text-ink-3">
             {shelf
               ? `${shelf.files.length} ${shelf.files.length === 1 ? 'file' : 'files'} · ${formatSize(shelf.size)} · grouped by unit`
               : `${files.length} ${files.length === 1 ? 'file' : 'files'} saved on this computer.`}
@@ -227,7 +227,7 @@ export function ContentSpace({
             <button
               type="button"
               onClick={() => setActiveCourse(null)}
-              className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5 text-[11.5px] font-medium text-slate-300 transition hover:border-white/20 hover:text-white"
+              className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2.5 py-1.5 text-[11.5px] font-medium text-ink-2 transition hover:border-white/20 hover:text-white"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               All courses
@@ -244,7 +244,7 @@ export function ContentSpace({
           <button
             type="button"
             onClick={() => void load()}
-            className="focus-ring grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-slate-400 transition hover:border-white/20 hover:text-white"
+            className="focus-ring grid h-8 w-8 place-items-center rounded-lg border border-line bg-surface-1 text-ink-2 transition hover:border-white/20 hover:text-white"
             aria-label="Refresh Content Space"
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -264,14 +264,14 @@ export function ContentSpace({
 
       {files.length === 0 ? (
         <div className="panel grid place-items-center px-6 py-16 text-center">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-violet-500/10 text-violet-300 ring-1 ring-inset ring-violet-400/20">
+          <span className="plate h-12 w-12">
             <Download className="h-5 w-5" />
           </span>
-          <h3 className="mt-4 font-display text-[15px] font-semibold text-white">Nothing saved yet</h3>
-          <p className="mt-1.5 max-w-md text-[12.5px] leading-relaxed text-slate-500">
-            Hover a file in a course’s <span className="text-slate-300">Content</span> tab and press
-            the download icon, save something from the <span className="text-slate-300">Exam bank</span>,
-            or add your own papers with <span className="text-slate-300">Add files</span>.
+          <h3 className="mt-4 font-display text-[15px] font-semibold tracking-[-0.02em] text-ink-1">Nothing saved yet</h3>
+          <p className="mt-1.5 max-w-md text-[12.5px] leading-relaxed text-ink-3">
+            Hover a file in a course’s <span className="text-ink-2">Content</span> tab and press
+            the download icon, save something from the <span className="text-ink-2">Exam bank</span>,
+            or add your own papers with <span className="text-ink-2">Add files</span>.
             Everything lands here, grouped by unit and readable offline.
           </p>
           <button
@@ -306,23 +306,24 @@ export function ContentSpace({
                     setDragOver(null);
                     void addDropped(entry, event.dataTransfer.files);
                   }}
-                  className={`focus-ring panel group relative overflow-hidden text-left transition ${
+                  className={`focus-ring panel group relative overflow-hidden text-left transition-[transform,border-color,box-shadow] duration-200 ease-[var(--ease-out)] ${
                     dragOver === entry.id
                       ? 'border-violet-400/50 bg-violet-500/[0.07] ring-1 ring-inset ring-violet-400/30'
-                      : 'hover:border-white/[0.16] hover:bg-white/[0.045]'
+                      : 'hover:-translate-y-[2px] hover:border-line-strong hover:shadow-[0_26px_50px_-28px_rgba(0,0,0,1)]'
                   }`}
                 >
-                  <div className="relative h-[72px] overflow-hidden bg-gradient-to-br from-violet-500/25 via-indigo-500/15 to-sky-400/10 px-4 py-3">
-                    <FolderOpen className="absolute -right-3 -top-3 h-20 w-20 text-white/[0.06]" strokeWidth={1.2} />
-                    <p className="relative font-mono text-[10px] uppercase tracking-[0.14em] text-slate-400">
+                  <div className="relative h-[72px] overflow-hidden border-b border-line bg-gradient-to-br from-violet-500/[0.16] via-indigo-500/[0.1] to-sky-400/[0.06] px-4 py-3">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_140%_at_6%_-30%,rgba(255,255,255,0.16),transparent_52%)]" />
+                    <FolderOpen className="absolute -right-3 -top-3 h-20 w-20 text-white/[0.07]" strokeWidth={1.2} />
+                    <p className="relative font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-3">
                       {entry.code ?? 'Content'} · {entry.files.length} {entry.files.length === 1 ? 'file' : 'files'}
                     </p>
-                    <p className="relative mt-2 line-clamp-2 text-[13.5px] font-semibold leading-snug text-white">
+                    <p className="relative mt-2 line-clamp-2 text-[13px] font-semibold leading-snug tracking-[-0.012em] text-ink-1">
                       {entry.name}
                     </p>
                   </div>
                   <div className="flex items-center justify-between gap-3 px-4 py-3">
-                    <div className="min-w-0 text-[11px] text-slate-500">
+                    <div className="min-w-0 text-[11px] text-ink-3">
                       {busy ? (
                         <p className="flex items-center gap-1.5 text-violet-200">
                           <Loader2 className="h-3 w-3 animate-spin" />
@@ -341,7 +342,7 @@ export function ContentSpace({
                         </>
                       )}
                     </div>
-                    <span className="shrink-0 text-[11px] font-medium text-violet-300/80 transition group-hover:text-violet-200">
+                    <span className="shrink-0 text-[11px] font-medium text-violet-300/80 transition-[color,transform] duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5 group-hover:text-violet-200">
                       {busy ? 'Adding' : 'Open →'}
                     </span>
                   </div>
@@ -358,9 +359,9 @@ export function ContentSpace({
             })}
           </div>
 
-          <p className="text-center text-[11px] text-slate-600">
+          <p className="text-center text-[11px] text-ink-4">
             Drop files onto a course card to add them, or use{' '}
-            <span className="text-slate-400">Add files</span> to choose a course first.
+            <span className="text-ink-2">Add files</span> to choose a course first.
           </p>
         </div>
       ) : (
@@ -398,12 +399,12 @@ export function ContentSpace({
                   : ''
               }`}
             >
-              <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+              <div className="flex items-center gap-2 border-b border-line px-4 py-3">
                 <span className="grid h-6 w-6 place-items-center rounded-md bg-sky-500/15 text-sky-300 ring-1 ring-inset ring-sky-400/20">
                   <FolderOpen className="h-3.5 w-3.5" />
                 </span>
-                <h3 className="font-display text-[13px] font-semibold text-slate-100">{section.label}</h3>
-                <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
+                <h3 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">{section.label}</h3>
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] text-ink-2">
                   {section.files.length}
                 </span>
                 {dragSection === section.key ? (
@@ -416,24 +417,24 @@ export function ContentSpace({
                     Adding {Math.min(dropping.done + 1, dropping.total)} of {dropping.total}…
                   </span>
                 ) : (
-                  <span className="ml-auto text-[10.5px] text-slate-600">
+                  <span className="ml-auto text-[10.5px] text-ink-4">
                     {formatSize(section.files.reduce((sum, file) => sum + file.size, 0))}
                   </span>
                 )}
               </div>
 
-              <ul className="divide-y divide-white/[0.055]">
+              <ul className="divide-y divide-line">
                 {section.files.map((file) => {
                   const Icon = fileIcon(file.mime);
                   const pdf = isPdf(file);
                   return (
                     <li key={file.id} className="group flex items-center gap-3 px-4 py-3">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.04] text-slate-400">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-line bg-surface-1 text-ink-2">
                         <Icon className="h-4 w-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[12.5px] font-medium text-slate-200">{file.title}</p>
-                        <p className="mt-0.5 truncate text-[10.5px] text-slate-500">
+                        <p className="truncate text-[12.5px] font-medium text-ink-1">{file.title}</p>
+                        <p className="mt-0.5 truncate text-[10.5px] text-ink-3">
                           {file.fileName.split('.').pop()?.toUpperCase() ?? 'FILE'} · {formatSize(file.size)} ·{' '}
                           {new Date(file.downloadedAt).toLocaleDateString('en-CA', {
                             month: 'short',
@@ -446,7 +447,7 @@ export function ContentSpace({
                         <button
                           type="button"
                           onClick={() => setViewing(file)}
-                          className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-slate-300 transition hover:border-violet-400/30 hover:bg-violet-500/[0.1] hover:text-violet-100"
+                          className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface-1 px-2.5 py-1.5 text-[11px] font-medium text-ink-2 transition hover:border-violet-400/30 hover:bg-violet-500/[0.1] hover:text-violet-100"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           {pdf ? 'View' : 'Open'}
@@ -455,7 +456,7 @@ export function ContentSpace({
                           href={`/api/library/file/${file.id}`}
                           download={file.fileName}
                           title="Save a copy"
-                          className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-white"
+                          className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-2 hover:text-white"
                         >
                           <Download className="h-3.5 w-3.5" />
                         </a>
@@ -464,7 +465,7 @@ export function ContentSpace({
                           onClick={() => void reveal(file)}
                           title="Show in folder — ready to share"
                           aria-label="Show in folder"
-                          className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-white"
+                          className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-2 hover:text-white"
                         >
                           <FolderSearch className="h-3.5 w-3.5" />
                         </button>
@@ -473,7 +474,7 @@ export function ContentSpace({
                           onClick={() => void remove(file)}
                           disabled={removing === file.id}
                           title="Remove from Content Space"
-                          className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-slate-600 transition hover:bg-rose-500/[0.1] hover:text-rose-300 disabled:opacity-50"
+                          className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-ink-4 transition hover:bg-rose-500/[0.1] hover:text-rose-300 disabled:opacity-50"
                         >
                           {removing === file.id ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -491,19 +492,19 @@ export function ContentSpace({
 
           {sections.length === 0 && (
             <div className="panel px-6 py-12 text-center">
-              <p className="text-[13px] text-slate-400">No files in this course.</p>
+              <p className="text-[13px] text-ink-2">No files in this course.</p>
             </div>
           )}
 
-          <p className="text-center text-[11px] text-slate-600">
+          <p className="text-center text-[11px] text-ink-4">
             Drop files onto a unit to file them there, or use{' '}
-            <span className="text-slate-400">Add files</span> above.
+            <span className="text-ink-2">Add files</span> above.
           </p>
         </div>
       )}
 
       {files.length > 0 && !shelf && (
-        <p className="flex items-center justify-center gap-1.5 text-[11px] text-slate-600">
+        <p className="flex items-center justify-center gap-1.5 text-[11px] text-ink-4">
           <Trash className="h-3 w-3" />
           Files stay on this computer; removing one deletes its local copy.
         </p>
@@ -526,10 +527,10 @@ export function ContentSpace({
           onClose={() => setViewing(null)}
         />
       ) : viewing ? (
-        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" role="dialog">
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4 backdrop-blur-[6px]" role="dialog">
           <div className="panel w-full max-w-sm px-5 py-5 text-center">
-            <p className="text-[13px] text-slate-300">{viewing.fileName}</p>
-            <p className="mt-1 text-[11.5px] text-slate-500">
+            <p className="text-[13px] text-ink-2">{viewing.fileName}</p>
+            <p className="mt-1 text-[11.5px] text-ink-3">
               This file type opens outside the reader.
             </p>
             <div className="mt-4 flex justify-center gap-2">
@@ -537,14 +538,14 @@ export function ContentSpace({
                 href={`/api/library/file/${viewing.id}`}
                 target="_blank"
                 rel="noreferrer"
-                className="focus-ring rounded-lg bg-white/[0.08] px-3 py-1.5 text-[12px] font-medium text-white hover:bg-white/[0.13]"
+                className="focus-ring rounded-lg bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-white hover:bg-surface-3"
               >
                 Open file
               </a>
               <button
                 type="button"
                 onClick={() => setViewing(null)}
-                className="focus-ring rounded-lg border border-white/10 px-3 py-1.5 text-[12px] text-slate-300 hover:bg-white/[0.05]"
+                className="focus-ring rounded-lg border border-white/10 px-3 py-1.5 text-[12px] text-ink-2 hover:bg-surface-2"
               >
                 Close
               </button>

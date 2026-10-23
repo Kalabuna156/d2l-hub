@@ -47,31 +47,31 @@ function LectureStudyBody({ payload }: { payload: LectureStudyPayload }) {
       )}
 
       {!plan ? (
-        <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-5 text-center">
-          <p className="text-[12px] text-slate-400">No lecture plan was generated.</p>
-          <p className="mt-1 text-[11px] text-slate-600">
+        <div className="rounded-xl border border-line bg-surface-1 px-4 py-5 text-center">
+          <p className="text-[12px] text-ink-2">No lecture plan was generated.</p>
+          <p className="mt-1 text-[11px] text-ink-4">
             The two channel links below still work.
           </p>
         </div>
       ) : (
         <>
           {plan.overview && (
-            <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-3">
-              <p className="text-[12.5px] leading-relaxed text-slate-300">{plan.overview}</p>
+            <section className="rounded-xl border border-line bg-surface-1 px-3.5 py-3">
+              <p className="text-[12.5px] leading-relaxed text-ink-2">{plan.overview}</p>
             </section>
           )}
 
           {plan.focus.length > 0 && (
-            <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-3">
-              <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <section className="rounded-xl border border-line bg-surface-1 px-3.5 py-3">
+              <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                 What to know
               </h4>
               <div className="mt-2 space-y-2.5">
                 {plan.focus.map((item, index) => (
                   <div key={`${item.topic}-${index}`}>
-                    <p className="text-[12px] font-medium text-slate-100">{item.topic}</p>
+                    <p className="text-[12px] font-medium text-ink-1">{item.topic}</p>
                     {item.detail && (
-                      <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">{item.detail}</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-ink-3">{item.detail}</p>
                     )}
                   </div>
                 ))}
@@ -80,15 +80,15 @@ function LectureStudyBody({ payload }: { payload: LectureStudyPayload }) {
           )}
 
           {plan.checklist.length > 0 && (
-            <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-3">
-              <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <section className="rounded-xl border border-line bg-surface-1 px-3.5 py-3">
+              <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                 Checklist
               </h4>
               <ul className="mt-2 space-y-1.5">
                 {plan.checklist.map((item) => (
                   <li
                     key={item}
-                    className="flex items-start gap-2 text-[11.5px] leading-relaxed text-slate-300"
+                    className="flex items-start gap-2 text-[11.5px] leading-relaxed text-ink-2"
                   >
                     <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/70" />
                     {item}
@@ -99,16 +99,16 @@ function LectureStudyBody({ payload }: { payload: LectureStudyPayload }) {
           )}
 
           {plan.bookPractice.length > 0 && (
-            <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-3">
-              <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <section className="rounded-xl border border-line bg-surface-1 px-3.5 py-3">
+              <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                 From the book
               </h4>
               <div className="mt-2 space-y-2">
                 {plan.bookPractice.map((item, index) => (
                   <div key={`${item.source}-${index}`}>
-                    <p className="text-[11.5px] font-medium text-slate-200">{item.source}</p>
+                    <p className="text-[11.5px] font-medium text-ink-1">{item.source}</p>
                     {item.problems.length > 0 && (
-                      <p className="mt-0.5 text-[11px] text-slate-500">{item.problems.join(' · ')}</p>
+                      <p className="mt-0.5 text-[11px] text-ink-3">{item.problems.join(' · ')}</p>
                     )}
                   </div>
                 ))}
@@ -117,24 +117,24 @@ function LectureStudyBody({ payload }: { payload: LectureStudyPayload }) {
           )}
 
           {plan.practice.length > 0 && (
-            <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-3">
-              <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <section className="rounded-xl border border-line bg-surface-1 px-3.5 py-3">
+              <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
                 Practice
               </h4>
               <div className="mt-2 space-y-1.5">
                 {plan.practice.map((item, index) => (
                   <details
                     key={`${index}-${item.question}`}
-                    className="rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2"
+                    className="rounded-lg border border-line bg-surface-1 px-3 py-2"
                   >
-                    <summary className="cursor-pointer text-[11.5px] leading-relaxed text-slate-200">
+                    <summary className="cursor-pointer text-[11.5px] leading-relaxed text-ink-1">
                       {item.question}
                     </summary>
-                    <p className="mt-2 whitespace-pre-wrap border-t border-white/[0.06] pt-2 text-[11.5px] leading-relaxed text-slate-400">
+                    <p className="mt-2 whitespace-pre-wrap border-t border-line pt-2 text-[11.5px] leading-relaxed text-ink-2">
                       {item.answer}
                     </p>
                     {item.source && (
-                      <p className="mt-1 text-[10px] text-slate-600">From {item.source}</p>
+                      <p className="mt-1 text-[10px] text-ink-4">From {item.source}</p>
                     )}
                   </details>
                 ))}
@@ -144,8 +144,8 @@ function LectureStudyBody({ payload }: { payload: LectureStudyPayload }) {
         </>
       )}
 
-      <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-3.5 py-3">
-        <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+      <section className="rounded-xl border border-line bg-surface-1 px-3.5 py-3">
+        <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
           Watch for this lecture
         </h4>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -155,7 +155,7 @@ function LectureStudyBody({ payload }: { payload: LectureStudyPayload }) {
               href={video.url}
               target="_blank"
               rel="noreferrer"
-              className="focus-ring rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 transition hover:border-violet-400/30 hover:bg-violet-500/[0.06]"
+              className="focus-ring rounded-xl border border-line bg-surface-1 px-3 py-2.5 transition hover:border-violet-400/30 hover:bg-violet-500/[0.06]"
             >
               <div className="flex items-center gap-1.5">
                 <span
@@ -167,13 +167,13 @@ function LectureStudyBody({ payload }: { payload: LectureStudyPayload }) {
                 >
                   {video.channel === '3blue1brown' ? '3B1B' : 'OCT'}
                 </span>
-                <span className="text-[10.5px] font-medium text-slate-300">{video.channelName}</span>
+                <span className="text-[10.5px] font-medium text-ink-2">{video.channelName}</span>
                 <span className="ml-auto rounded-full bg-violet-500/[0.14] px-1.5 py-0.5 text-[9px] font-medium text-violet-200">
                   {video.fromAi ? 'AI pick' : 'Channel search'}
                 </span>
               </div>
-              <p className="mt-1.5 text-[11.5px] font-medium text-slate-100">{video.title}</p>
-              <p className="mt-0.5 text-[10.5px] leading-relaxed text-slate-500">{video.reason}</p>
+              <p className="mt-1.5 text-[11.5px] font-medium text-ink-1">{video.title}</p>
+              <p className="mt-0.5 text-[10.5px] leading-relaxed text-ink-3">{video.reason}</p>
               <span className="mt-1.5 inline-flex items-center gap-1 text-[10.5px] font-medium text-violet-200">
                 Watch on YouTube
                 <ArrowUpRight className="h-3 w-3" />
@@ -320,11 +320,11 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
           <AlertTriangle className="h-5 w-5" />
         </span>
         <h3 className="mt-4 font-display text-base font-semibold text-white">Couldn’t load content</h3>
-        <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-500">{error}</p>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-3">{error}</p>
         <button
           type="button"
           onClick={() => void load()}
-          className="focus-ring mx-auto mt-5 flex items-center gap-2 rounded-xl bg-white/[0.08] px-3.5 py-2 text-[12.5px] font-medium text-white transition hover:bg-white/[0.13]"
+          className="focus-ring mx-auto mt-5 flex items-center gap-2 rounded-xl bg-surface-2 px-3.5 py-2 text-[12.5px] font-medium text-white transition hover:bg-surface-3"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Try again
@@ -336,18 +336,18 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(200px,268px)_minmax(0,1fr)]">
       <section className="panel self-start overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <span className="grid h-6 w-6 place-items-center rounded-md bg-violet-500/15 text-violet-300 ring-1 ring-inset ring-violet-400/20">
             <FolderOpen className="h-3.5 w-3.5" />
           </span>
-          <h3 className="font-display text-[13px] font-semibold text-slate-100">Modules</h3>
-          <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
+          <h3 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">Modules</h3>
+          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] text-ink-2">
             {modules.length}
           </span>
         </div>
 
         {modules.length === 0 ? (
-          <p className="px-4 py-8 text-center text-[12px] text-slate-500">
+          <p className="px-4 py-8 text-center text-[12px] text-ink-3">
             This course has no content modules.
           </p>
         ) : (
@@ -363,18 +363,18 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
                     className={`focus-ring flex w-full items-center gap-2 py-2 pr-3 text-left text-[12.5px] transition ${
                       active
                         ? 'bg-violet-500/[0.12] text-violet-100'
-                        : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
+                        : 'text-ink-2 hover:bg-surface-1 hover:text-ink-1'
                     }`}
                   >
                     <span
-                      className={`h-1 w-1 shrink-0 rounded-full ${active ? 'bg-violet-300' : 'bg-slate-600'}`}
+                      className={`h-1 w-1 shrink-0 rounded-full ${active ? 'bg-violet-300' : 'bg-ink-4'}`}
                     />
                     <span className="min-w-0 flex-1 truncate" title={module.name}>
                       {module.name}
                     </span>
                     {moduleCountLabel(module) && (
                       <span
-                        className="shrink-0 text-[10.5px] text-slate-600"
+                        className="shrink-0 text-[10.5px] text-ink-4"
                         title={
                           module.remaining !== null && module.total !== null
                             ? `${module.remaining} of ${module.total} topics remaining`
@@ -394,14 +394,14 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
       </section>
 
       <section className="panel overflow-hidden">
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
           <span className="grid h-6 w-6 place-items-center rounded-md bg-sky-500/15 text-sky-300 ring-1 ring-inset ring-sky-400/20">
             <FileText className="h-3.5 w-3.5" />
           </span>
-          <h3 className="font-display text-[13px] font-semibold text-slate-100">
+          <h3 className="font-display text-[13px] font-semibold tracking-[-0.01em] text-ink-1">
             {moduleTitle ?? activeModule?.name ?? 'Topics'}
           </h3>
-          <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] text-slate-400">
+          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] text-ink-2">
             {topics.length}
           </span>
           {contentUrl && (
@@ -409,7 +409,7 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
               href={contentUrl}
               target="_blank"
               rel="noreferrer"
-              className="focus-ring ml-auto inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+              className="focus-ring ml-auto inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[11px] font-medium text-ink-2 transition hover:bg-surface-2 hover:text-white"
             >
               Open in D2L
               <ExternalLink className="h-3 w-3" />
@@ -439,26 +439,26 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
         )}
 
         {topicLoading ? (
-          <div className="flex items-center justify-center gap-2 px-4 py-14 text-[12px] text-slate-500">
+          <div className="flex items-center justify-center gap-2 px-4 py-14 text-[12px] text-ink-3">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             Loading this module…
           </div>
         ) : topics.length === 0 ? (
           <div className="px-4 py-12 text-center">
-            <p className="text-[13px] text-slate-400">No topics in this module.</p>
-            <p className="mt-1 text-[11.5px] text-slate-600">
+            <p className="text-[13px] text-ink-2">No topics in this module.</p>
+            <p className="mt-1 text-[11.5px] text-ink-4">
               Sub-modules and files open in D2L from the module list.
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-white/[0.055]">
+          <ul className="divide-y divide-line">
             {topics.map((topic) => {
               const isPdf = /pdf/i.test(topic.type ?? '') || /\.pdf/i.test(topic.title);
               const saved = downloaded.has(topic.id);
               return (
                 <li
                   key={topic.id}
-                  className="group flex items-center gap-2 px-4 py-3 transition hover:bg-white/[0.03]"
+                  className="group flex items-center gap-2 px-4 py-3 transition hover:bg-surface-1"
                 >
                   <a
                     href={topic.url}
@@ -466,15 +466,15 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
                     rel="noreferrer"
                     className="focus-ring flex min-w-0 flex-1 items-center gap-3"
                   >
-                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.04] text-slate-500 transition group-hover:text-slate-300">
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-line bg-surface-1 text-ink-3 transition group-hover:text-ink-2">
                       <FileText className="h-3.5 w-3.5" strokeWidth={1.8} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[12.5px] font-medium text-slate-200 group-hover:text-white">
+                      <span className="block truncate text-[12.5px] font-medium text-ink-1 group-hover:text-white">
                         {topic.title}
                       </span>
                       {topic.type && (
-                        <span className="mt-0.5 block text-[10.5px] text-slate-500">{topic.type}</span>
+                        <span className="mt-0.5 block text-[10.5px] text-ink-3">{topic.type}</span>
                       )}
                     </span>
                   </a>
@@ -503,7 +503,7 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
                     className={`focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition disabled:opacity-60 ${
                       saved
                         ? 'border-emerald-400/25 bg-emerald-400/[0.08] text-emerald-300'
-                        : 'border-transparent text-slate-600 opacity-0 hover:border-white/10 hover:bg-white/[0.07] hover:text-white focus:opacity-100 group-hover:opacity-100'
+                        : 'border-transparent text-ink-4 opacity-0 hover:border-white/10 hover:bg-surface-2 hover:text-white focus:opacity-100 group-hover:opacity-100'
                     }`}
                   >
                     {downloading === topic.id ? (
@@ -519,7 +519,7 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Open in D2L"
-                    className="focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-600 transition hover:bg-white/[0.07] hover:text-slate-200"
+                    className="focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-4 transition hover:bg-surface-2 hover:text-ink-1"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
@@ -538,12 +538,12 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
           aria-label={`Study plan for ${studyTopic.title}`}
         >
           <div className="panel mx-auto my-4 w-full max-w-3xl overflow-hidden sm:my-8">
-            <div className="flex items-start gap-3 border-b border-white/[0.06] px-5 py-4">
+            <div className="flex items-start gap-3 border-b border-line px-5 py-4">
               <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-500/[0.12] text-violet-300 ring-1 ring-inset ring-violet-400/20">
                 <Sparkles className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink-3">
                   {course.code || 'Lecture'} · {moduleTitle ?? activeModule?.name ?? 'Content'}
                 </p>
                 <h3 className="mt-0.5 font-display text-[16px] font-semibold leading-snug text-white">
@@ -555,7 +555,7 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
                   type="button"
                   onClick={() => void openStudy(studyTopic, true)}
                   disabled={studyLoading}
-                  className="focus-ring inline-flex h-8 shrink-0 items-center gap-1 rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-medium text-slate-400 transition hover:border-white/20 hover:text-white disabled:opacity-50"
+                  className="focus-ring inline-flex h-8 shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 text-[11px] font-medium text-ink-2 transition hover:border-white/20 hover:text-white disabled:opacity-50"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${studyLoading ? 'animate-spin' : ''}`} />
                   Rebuild
@@ -565,7 +565,7 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
                 type="button"
                 onClick={closeStudy}
                 aria-label="Close lecture study plan"
-                className="focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.07] hover:text-white"
+                className="focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-2 hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -575,8 +575,8 @@ export function CourseContentPanel({ course, refreshToken }: CourseContentPanelP
               {studyLoading && !studyPayload ? (
                 <div className="grid place-items-center py-14 text-center">
                   <Loader2 className="h-5 w-5 animate-spin text-violet-300" />
-                  <p className="mt-3 text-[13px] font-medium text-slate-200">Reading this lecture…</p>
-                  <p className="mt-1 text-[11px] text-slate-500">
+                  <p className="mt-3 text-[13px] font-medium text-ink-1">Reading this lecture…</p>
+                  <p className="mt-1 text-[11px] text-ink-3">
                     Building the plan and picking a video for each channel.
                   </p>
                 </div>
