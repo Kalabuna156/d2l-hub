@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Typeset math in AI answers. */
+@import "katex/dist/katex.min.css";
 
 @theme {
   --font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;

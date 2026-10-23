@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import katex from 'katex';
-import 'katex/dist/katex.min.css';
 import { Loader2, Send, Settings2, Sparkles, X } from 'lucide-react';
 import type { AiStatus } from '../../shared/types';
 import { splitDisplayMath, splitInlineMath } from '../lib/math-text';

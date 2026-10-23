@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { AiStatus } from '../shared/types';
@@ -14,19 +15,19 @@ const ai: AiStatus = {
 
 function render(text: string): string {
   return renderToStaticMarkup(
-    <PdfAiPanel
-      page={2}
-      pageCount={7}
-      ai={ai}
-      messages={[{ role: 'assistant', text }]}
-      question=""
-      busy={false}
-      error={null}
-      onQuestion={() => {}}
-      onSend={() => {}}
-      onClose={() => {}}
-      onOpenSettings={() => {}}
-    />,
+    createElement(PdfAiPanel, {
+      page: 2,
+      pageCount: 7,
+      ai,
+      messages: [{ role: 'assistant', text }],
+      question: '',
+      busy: false,
+      error: null,
+      onQuestion: () => {},
+      onSend: () => {},
+      onClose: () => {},
+      onOpenSettings: () => {},
+    }),
   );
 }
 
