@@ -1,6 +1,9 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { Loader2, Send, Settings2, Sparkles, X } from 'lucide-react';
 import type { AiStatus } from '../../shared/types';
+import { splitDisplayMath, splitInlineMath } from '../lib/math-text';
 
 export interface PdfAiMessage {
   role: 'user' | 'assistant';
@@ -28,11 +31,50 @@ const SUGGESTIONS = [
   'What does my handwriting say?',
 ];
 
-/** Small markdown subset (bold, code, headings, lists) in plain React nodes. */
-function inline(text: string): ReactNode[] {
+/** Typeset LaTeX with KaTeX, falling back to the source if it will not parse. */
+function MathNode({ tex, display }: { tex: string; display: boolean }) {
+  const html = useMemo(() => {
+    try {
+      return katex.renderToString(tex, {
+        displayMode: display,
+        throwOnError: true,
+        strict: false,
+        trust: false,
+      });
+    } catch {
+      return null;
+    }
+  }, [tex, display]);
+
+  if (!html) {
+    return (
+      <code className="rounded bg-white/10 px-1 py-0.5 font-mono text-[10.5px] text-slate-300">
+        {display ? `$$${tex}$$` : `$${tex}$`}
+      </code>
+    );
+  }
+
+  if (display) {
+    return (
+      <div className="my-1 overflow-x-auto overflow-y-hidden py-0.5 text-center">
+        <span dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+    );
+  }
+
+  return (
+    <span
+      className="mx-px inline-block align-middle"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
+/** Small markdown subset (bold, code, emphasis) in plain React nodes. */
+function emphasis(text: string): ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*\n]+\*)/g).map((part, index) => {
-    if (/^\*\*[^*]+\*\*$/.test(part)) return <strong key={index}>{part.slice(2, -2)}</strong>;
-    if (/^\*[^*\n]+\*$/.test(part)) return <em key={index}>{part.slice(1, -1)}</em>;
+    if (/^\*\*[^*]+\*\*$/.test(part)) return <strong key={index}>{inline(part.slice(2, -2))}</strong>;
+    if (/^\*[^*\n]+\*$/.test(part)) return <em key={index}>{inline(part.slice(1, -1))}</em>;
     if (/^`[^`]+`$/.test(part)) {
       return (
         <code key={index} className="rounded bg-white/10 px-1 py-0.5 font-mono text-[10.5px]">
@@ -44,9 +86,22 @@ function inline(text: string): ReactNode[] {
   });
 }
 
-function AnswerText({ text }: { text: string }) {
+/** Inline markdown with `$…$` formulas typeset in place. */
+function inline(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  splitInlineMath(text).forEach((segment, index) => {
+    if (segment.type === 'math') {
+      nodes.push(<MathNode key={`math-${index}`} tex={segment.value} display={false} />);
+    } else {
+      nodes.push(...emphasis(segment.value));
+    }
+  });
+  return nodes;
+}
+
+function Prose({ text }: { text: string }) {
   return (
-    <div className="space-y-1.5 select-text break-words">
+    <>
       {text.split('\n').map((line, index) => {
         const trimmed = line.trim();
         if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) return null;
@@ -78,6 +133,20 @@ function AnswerText({ text }: { text: string }) {
         }
         return <p key={index}>{inline(trimmed)}</p>;
       })}
+    </>
+  );
+}
+
+function AnswerText({ text }: { text: string }) {
+  return (
+    <div className="space-y-1.5 select-text break-words">
+      {splitDisplayMath(text).map((block, index) =>
+        block.type === 'math' ? (
+          <MathNode key={`block-${index}`} tex={block.value} display />
+        ) : (
+          <Prose key={`block-${index}`} text={block.value} />
+        ),
+      )}
     </div>
   );
 }
